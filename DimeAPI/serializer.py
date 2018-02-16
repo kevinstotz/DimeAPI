@@ -1,7 +1,7 @@
 from datetime import datetime
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
-from DimeAPI.models import Register, RegisterStatus, CustomUser, Dime10Index, NewsLetter, UserAgent, Password
+from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeMutualFund, NewsLetter, UserAgent, Password, Currency
 from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH
 from DimeAPI.classes.UserUtil import get_authorization_code
 from DimeAPI.classes.EmailUtil import EmailUtil
@@ -16,13 +16,28 @@ class CustomUserSerializer(ModelSerializer):
 class DimeIndexSerializer(ModelSerializer):
 
     class Meta:
-        model = Dime10Index
+        model = DimeMutualFund
         fields = ('id', 'currency',)
 
 
-class HistorySerializer(ModelSerializer):
+class CurrencySerializer(ModelSerializer):
+
     class Meta:
-        model = Dime10Index
+        model = Currency
+        fields = ('id', 'name', 'symbol', 'coinName', 'fullName', 'totalCoinSupply', 'icon')
+
+
+class DimePeriodSerializer(ModelSerializer):
+
+    class Meta:
+        model = DimeMutualFund
+        fields = ('period', 'currency', 'rank', 'level', 'rebalance_price',
+                  'market_cap', 'percent_of_dime', 'amount', 'rebalance_value', 'end_price', 'end_value',)
+
+
+class DimeHistorySerializer(ModelSerializer):
+    class Meta:
+        model = DimeMutualFund
         fields = ('id', 'currency', 'totalCoinSupply',)
 
 

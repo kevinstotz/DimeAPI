@@ -1,3 +1,4 @@
+import json
 import logging
 from rest_framework import serializers
 from rest_framework.mixins import CreateModelMixin
@@ -5,11 +6,12 @@ from oauth2_provider.views.generic import ProtectedResourceView
 from datetime import datetime
 from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
     EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS
-from DimeAPI.models import CustomUser, Register, RegisterStatus, Dime10Index, \
+from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeMutualFund, \
     NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name
 from DimeAPI.serializer import RegisterSerializer, \
-    DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer
-from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch
+    DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, CurrencySerializer
+from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch, DimeUtil
+from DimeAPI.classes.Xchanges import CoinbaseUtil, GdaxUtil, CryptoCompareUtil
 from DimeAPI.permissions import IsAuthenticatedOrCreate
 from DimeAPI.classes.UserUtil import get_client_ip
 
@@ -54,7 +56,6 @@ class IndexPage(generics.ListAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = (AllowAny,)
-    renderer_classes = (JSONRenderer,)
 
     def get(self, request, *args, **kwargs):
         return Response(status=status.HTTP_200_OK)
@@ -64,12 +65,20 @@ class IndexPage(generics.ListAPIView):
 
 
 class DimeIndex(generics.ListAPIView):
+    model = DimeMutualFund
     serializer_class = DimeIndexSerializer
     parser_classes = (JSONParser,)
-    queryset = Dime10Index.objects.all()
+    permission_classes = (AllowAny,)
+    queryset = DimeMutualFund.objects.all()
 
     def get(self, request, *args, **kwargs):
-        pass
+        cryptoCompareXchange = CryptoCompareUtil.CryptoCompareUtil()
+        dime_index = DimeUtil.DimeUtil(exchange=cryptoCompareXchange)
+
+
+
+        return Response(ReturnResponse.Response(1, __name__, "Done", 0).return_json(),
+                        status=status.HTTP_200_OK)
 
 
 class NewsLetterSubscribe(generics.GenericAPIView):
@@ -88,18 +97,18 @@ class NewsLetterSubscribe(generics.GenericAPIView):
         except Exception:
             result = 'Failed to parse JSON:{0}'.format(request) + news_letter.errors
             logger.error(result)
-            return Response(ReturnResponse.Response(1, __name__, "failed", result).return_json(),
+            return Response(ReturnResponse.Response(1, __name__, "Subscription Failed", result).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)
 
         if NewsLetter.objects.filter(pk=news_letter.initial_data['email']).exists():
             result = "Email exists."
             logger.error(result)
-            return Response(ReturnResponse.Response(1, __name__, "failed", result).return_json(),
+            return Response(ReturnResponse.Response(1, __name__, "Subscription Failed", result).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)
 
         news_letter.create(news_letter.validated_data)
         result = "Joined Mailing List"
-        return Response(ReturnResponse.Response(0, __name__, "success", result).return_json(),
+        return Response(ReturnResponse.Response(0, __name__, "Subscription Successful", result).return_json(),
                         status=status.HTTP_201_CREATED)
 
 
@@ -108,7 +117,7 @@ class ReadHistory(generics.ListAPIView):
         pass
         # serializer_class = DimeIndexSerializer
         # parser_classes = (JSONParser,)
-        # queryset = Dime10Index.objects.all()
+        # queryset = DimeMutualFund.objects.all()
 
 
 class UserInfo(LoginRequiredMixin, generics.ListAPIView):

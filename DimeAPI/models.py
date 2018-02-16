@@ -7,7 +7,7 @@ from DimeAPI.settings.base import EMAIL_LENGTH, ADDRESS_LENGTH, FIRST_NAME_LENGT
     COIN_SYMBOL_LENGTH, COIN_NAME_LENGTH, COIN_FULL_NAME_LENGTH, ICON_NAME_LENGTH, PASSWORD_LENGTH, AUTH_USER_MODEL
 from .managers import UserManager
 from DimeAPI.classes.UnixEpoch import UnixEpochDateTimeField
-
+import datetime
 
 class UserStatus(models.Model):
     id = models.AutoField(primary_key=True)
@@ -248,14 +248,30 @@ class Notification(models.Model):
         ordering = ('id',)
 
 
+class Xchange(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50, default="")
+    url = models.CharField(max_length=200, default="")
+    category = models.CharField(max_length=50, default="")
+    order = models.SmallIntegerField(default=1)
+    api_url = models.CharField(max_length=200, default="")
+    api_key =  models.CharField(max_length=200, default="")
+    api_secret =  models.CharField(max_length=200, default="")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.name
+
+    class Meta:
+        ordering = ('id',)
+
+
 class Currency(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=CURRENCY_NAME_LENGTH, default="")
     symbol = models.CharField(max_length=COIN_SYMBOL_LENGTH, default="")
     coinName = models.CharField(max_length=COIN_NAME_LENGTH, default="")
     fullName = models.CharField(max_length=COIN_FULL_NAME_LENGTH, default="")
-    totalCoinSupply = models.FloatField(default=0.0)
-    icon = models.CharField(max_length=ICON_NAME_LENGTH, default="default.png")
 
     objects = models.Manager()
 
@@ -266,19 +282,31 @@ class Currency(models.Model):
         ordering = ('id',)
 
 
-class Xchange(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=50, default="")
+class CryptoCompareCoin(models.Model):
+    xchange_coin = models.IntegerField(default=1)
+    local_coin = models.OneToOneField(Currency, on_delete=models.CASCADE, primary_key=True, related_name='cryptoCompareCoin')
+    xchange = models.ForeignKey(Xchange, on_delete=models.CASCADE)
     url = models.CharField(max_length=200, default="")
-
+    image_url = models.CharField(max_length=200, default="")
+    name = models.CharField(max_length=CURRENCY_NAME_LENGTH, default="")
+    symbol = models.CharField(max_length=COIN_SYMBOL_LENGTH, default="")
+    coin_name = models.CharField(max_length=COIN_NAME_LENGTH, default="")
+    full_name = models.CharField(max_length=COIN_FULL_NAME_LENGTH, default="")
+    algorithm = models.CharField(max_length=50, default="")
+    proof_type = models.CharField(max_length=50, default="")
+    fully_premined = models.SmallIntegerField(default=1)
+    total_coin_supply = models.FloatField(default=0.0)
+    pre_mined_value = models.CharField(max_length=20, default="")
+    total_coins_free_float = models.CharField(max_length=20, default="")
+    sort_order = models.SmallIntegerField(default=1)
+    sponsored = models.BooleanField(default=False)
     objects = models.Manager()
 
     def __str__(self):
         return '%s' % self.name
 
     class Meta:
-        ordering = ('id',)
-
+        ordering = ('name',)
 
 class XchangeCurrency(models.Model):
     currencyXChange = models.ForeignKey(Xchange, on_delete=models.SET_DEFAULT, default=1)
@@ -306,19 +334,6 @@ class NewsLetter(models.Model):
         ordering = ('email', )
 
 
-class CurrencyXchangeMap(models.Model):
-    currencyXChange = models.ForeignKey(XchangeCurrency, on_delete=models.SET_DEFAULT, default=1)
-    currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
-
-    objects = models.Manager()
-
-    def __str__(self):
-        return '%s' % self.currencyXChange
-
-    class Meta:
-        ordering = ('currencyXChange', 'currency')
-
-
 class CurrencyHistory(models.Model):
     id = models.AutoField(primary_key=True)
     currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
@@ -338,14 +353,15 @@ class CurrencyHistory(models.Model):
 
 class Period(models.Model):
     id = models.AutoField(primary_key=True)
-    startYear = models.IntegerField(default=2017)
-    startQarter = models.IntegerField(default=1)
-    startMonth = models.IntegerField(default=1)
-    startDay = models.IntegerField(default=1)
-    endYear = models.IntegerField(default=2017)
-    endQarter = models.IntegerField(default=1)
-    endMonth = models.IntegerField(default=1)
-    endDay = models.IntegerField(default=1)
+    start_year = models.IntegerField(default=2017)
+    start_month = models.IntegerField(default=1)
+    start_day = models.IntegerField(default=1)
+    end_year = models.IntegerField(default=2017)
+    end_month = models.IntegerField(default=1)
+    end_day = models.IntegerField(default=1)
+    num_of_coins = models.IntegerField(default=10)
+
+    objects = models.Manager()
 
     def __str__(self):
         return '%s' % self.id
@@ -354,24 +370,64 @@ class Period(models.Model):
         ordering = ('id',)
 
 
-class Dime10Index(models.Model):
+class Vendor(models.Model):
     id = models.AutoField(primary_key=True)
-    currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
-    rebalanceDate = models.DateField(default=0)
+    name = models.CharField(max_length=50, default="")
+    category = models.CharField(max_length=50, default="")
+    url = models.CharField(max_length=200, default="")
+    api_url = models.CharField(max_length=200, default="")
+    api_key =  models.CharField(max_length=100, default="")
+    username = models.CharField(max_length=50, default="")
+    password = models.CharField(max_length=50, default="")
+
+    def __str__(self):
+        return '%s' % self.name
+
+    class Meta:
+        ordering = ('id', 'name',)
+
+
+class DimePeriod(models.Model):
+    id = models.AutoField(primary_key=True)
     period = models.ForeignKey(Period, on_delete=models.SET_DEFAULT, default=1)
-    rank = models.IntegerField(default=0)
+    currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
+    rank = models.SmallIntegerField(default=0)
     level = models.FloatField(default=0.0)
-    rebalancePrice = models.FloatField(default=0.0)
-    marketCap = models.BigIntegerField(default=0)
-    percentOfDime = models.FloatField(default=0.0)
+    rebalance_price = models.FloatField(default=0.0)
+    market_cap = models.BigIntegerField(default=0)
+    percent_of_dime = models.FloatField(default=0.0)
     amount = models.FloatField(default=0.0)
-    rebalanceValue = models.FloatField(default=0.0)
-    endPrice = models.FloatField(default=0.0)
-    endValue = models.FloatField(default=0.0)
+    rebalance_value = models.FloatField(default=0.0)
+    end_price = models.FloatField(default=0.0)
+    end_value = models.FloatField(default=0.0)
     objects = models.Manager()
 
     def __str__(self):
-        return '%s' % self.currency
+        return '%s: %s' % (self.period, self.currency)
+
+    class Meta:
+        ordering = ('id',)
+
+
+class DimeMutualFund(models.Model):
+    id = models.AutoField(primary_key=True)
+    currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
+    rebalance_date = models.DateField(default=datetime.date.today)
+    period = models.ForeignKey(Period, on_delete=models.SET_DEFAULT, default=1)
+    rank = models.IntegerField(default=0)
+    level = models.FloatField(default=0.0)
+    rebalance_price = models.FloatField(default=0.0)
+    market_cap = models.BigIntegerField(default=0)
+    available_supply = models.BigIntegerField(default=0)
+    percent_of_dime = models.FloatField(default=0.0)
+    amount = models.FloatField(default=0.0)
+    rebalance_value = models.FloatField(default=0.0)
+    end_price = models.FloatField(default=0.0)
+    end_value = models.FloatField(default=0.0)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
 
     class Meta:
         ordering = ('id',)

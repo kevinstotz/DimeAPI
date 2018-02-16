@@ -5,7 +5,7 @@
 ;;
 
 ;;files to ignore
-settings.py
+
 local.py
 ;;extensions to ignore
 *.log

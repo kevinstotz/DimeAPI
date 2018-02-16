@@ -37,7 +37,7 @@ def some_job():
                                  charset='utf8mb4',
                                  cursorclass=pymysql.cursors.DictCursor)
 
-    sql = "SELECT currency_id FROM `dimeapi_dime10index` WHERE rebalanceDate = '2017-12-23'"
+    sql = "SELECT currency_id FROM `dimeapi_DimeMutualFund` WHERE rebalanceDate = '2017-12-23'"
     try:
         with connection.cursor() as cursor:
             cursor.execute(sql)

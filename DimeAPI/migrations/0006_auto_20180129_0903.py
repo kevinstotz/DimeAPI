@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Dime10Index',
+            name='DimeMutualFund',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('rebalanceDate', models.DateField(default=0)),
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.AddField(
-            model_name='dime10index',
+            model_name='DimeMutualFund',
             name='period',
             field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.SET_DEFAULT, to='DimeAPI.Period'),
         ),

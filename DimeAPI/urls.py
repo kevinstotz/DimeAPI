@@ -26,7 +26,7 @@ admin.autodiscover()
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
-    path(r'dime/index', DimeIndex.as_view(), name="dimeIndex"),
+    path(r'api/dime/index', DimeIndex.as_view(), name="dimeIndex"),
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
     path(r'api/newsletter', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
     path(r'api/register/', RegisterUser.as_view({"post": "create"}), name="registerUser"),

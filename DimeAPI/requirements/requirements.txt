@@ -9,6 +9,8 @@ certifi==2018.1.18
 cffi==1.11.2
 chardet==3.0.4
 click==6.7
+coinbase==2.0.7
+cryptocompare==0.3
 cryptography==2.1.4
 cytoolz==0.9.0
 Django==2.0.1
@@ -67,7 +69,8 @@ Pillow==4.3.0
 protobuf==3.5.0.post1
 py-ecc==1.4.2
 pycparser==2.18
-pycryptodome==3.4.7
+pycropto==2.6.1
+pycryptodome>=3.4.11
 PyJWT==1.5.3
 pylru==1.0.9
 PyMySQL==0.8.0
