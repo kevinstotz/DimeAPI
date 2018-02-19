@@ -1,31 +1,31 @@
-import json
 import logging
 from rest_framework import serializers
 from rest_framework.mixins import CreateModelMixin
 from oauth2_provider.views.generic import ProtectedResourceView
-from datetime import datetime
+from datetime import datetime, timedelta
 from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
-    EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS
+    EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE
 from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeMutualFund, \
-    NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name
+    NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, Xchange, Period, DimeHistory
 from DimeAPI.serializer import RegisterSerializer, \
-    DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, CurrencySerializer
+    DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer
 from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch, DimeUtil
-from DimeAPI.classes.Xchanges import CoinbaseUtil, GdaxUtil, CryptoCompareUtil
+from django_filters.rest_framework import DjangoFilterBackend
+
 from DimeAPI.permissions import IsAuthenticatedOrCreate
 from DimeAPI.classes.UserUtil import get_client_ip
-
+from DimeAPI.coins import BTC
+from DimeAPI import coins
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from django.core.exceptions import ObjectDoesNotExist
-
 from rest_framework.renderers import JSONRenderer
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 from rest_framework import viewsets
-
+import calendar
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +64,16 @@ class IndexPage(generics.ListAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
+class Dime(generics.ListAPIView):
+    model = DimeMutualFund
+    serializer_class = DimeHistorySerializer
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+    queryset = DimeHistory.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('xchange',)
+
+
 class DimeIndex(generics.ListAPIView):
     model = DimeMutualFund
     serializer_class = DimeIndexSerializer
@@ -72,13 +82,38 @@ class DimeIndex(generics.ListAPIView):
     queryset = DimeMutualFund.objects.all()
 
     def get(self, request, *args, **kwargs):
-        cryptoCompareXchange = CryptoCompareUtil.CryptoCompareUtil()
-        dime_index = DimeUtil.DimeUtil(exchange=cryptoCompareXchange)
 
+        xchange = Xchange.objects.get(pk=XCHANGE['CRYPTO_COMPARE'])
+        values = dict()
+        periods = Period.objects.all()[1:]
+        for period in periods:
+            start_date = datetime.strptime(str(period.start_year) + '-' + str(period.start_month) + '-' + str(period.start_day), '%Y-%m-%d').date()
+            rebalance_date = start_date
 
+            end_date = datetime.strptime(str(period.end_year) + '-' + str(period.end_month) + '-' + str(period.end_day), '%Y-%m-%d').date()
+            if end_date > datetime.utcnow().date():
+                end_date = datetime.utcnow().date()
+            while start_date < end_date:
+                dimeindex = DimeMutualFund.objects.filter(rebalance_date=rebalance_date)
+                running_total = 0
+                for coin in dimeindex:
+                    coin_class = getattr(coins, coin.currency.symbol)
+                    try:
+                        index = coin_class.objects.using('coins').get(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
+                    except ObjectDoesNotExist as error:
+                        continue
+                    running_total = running_total + coin.percent_of_dime / 100.0 * index.close
 
-        return Response(ReturnResponse.Response(1, __name__, "Done", 0).return_json(),
-                        status=status.HTTP_200_OK)
+                dimeHistory = DimeHistorySerializer(data={'time': int(calendar.timegm(start_date.timetuple())),
+                                                          'value': running_total,
+                                                          'xchange': xchange.pk})
+                if dimeHistory.is_valid():
+                    dimeHistory.save()
+                else:
+                    print("failed {0}".format(dimeHistory.errors))
+                #  values[start_date.strftime('%Y-%m-%d')] = running_total
+                start_date = start_date + timedelta(days=1)
+        return Response(ReturnResponse.Response(1, __name__, "Done", 0).return_json(), status=status.HTTP_200_OK)
 
 
 class NewsLetterSubscribe(generics.GenericAPIView):

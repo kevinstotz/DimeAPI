@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_totp',
     'two_factor',
     'web3',
-    'sslserver',
     'django_user_agents',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -233,8 +232,18 @@ DATABASES = {
         'OPTIONS': {
             'read_default_file': join('C:/', 'ProgramData/', 'MySQL', 'MySQL Server 5.7/', 'my.ini'),
         },
+    },
+    'coins': {
+        'NAME': 'dimecoins-dev',
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': 'dev.cdt994n5tnkz.us-west-2.rds.amazonaws.com',
+        'PORT': 3306,
+        'OPTIONS': {
+            'read_default_file': join('C:/', 'ProgramData/', 'MySQL', 'MySQL Server 5.7/', 'my.ini'),
+        },
     }
 }
+
 
 OAUTH2_PROVIDER = {
     'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
@@ -245,6 +254,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
@@ -253,13 +263,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication'
     ],
-    'PAGE_SIZE': 10,
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
     ),
-    'DEFAULT_PAGINATION_CLASS': (
-        'rest_framework.pagination.LimitOffsetPagination',
-    )
 }
 
 # 'DEFAULT_FILTER_BACKENDS':  ('rest_framework.filters.DjangoFilterBackend',),

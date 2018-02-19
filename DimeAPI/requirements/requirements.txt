@@ -69,7 +69,7 @@ Pillow==4.3.0
 protobuf==3.5.0.post1
 py-ecc==1.4.2
 pycparser==2.18
-pycropto==2.6.1
+pycrypto==2.6.1
 pycryptodome>=3.4.11
 PyJWT==1.5.3
 pylru==1.0.9

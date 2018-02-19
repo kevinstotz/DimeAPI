@@ -9,6 +9,7 @@ from .managers import UserManager
 from DimeAPI.classes.UnixEpoch import UnixEpochDateTimeField
 import datetime
 
+
 class UserStatus(models.Model):
     id = models.AutoField(primary_key=True)
     status = models.CharField(max_length=ADDRESS_LENGTH, verbose_name="Status of User")
@@ -428,6 +429,22 @@ class DimeMutualFund(models.Model):
 
     def __str__(self):
         return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class DimeHistory(models.Model):
+    id = models.AutoField(primary_key=True)
+    time = models.BigIntegerField(default=0, verbose_name="Close Date")
+    value = models.FloatField(default=0.0)
+    xchange = models.ForeignKey(Xchange, on_delete=models.SET_DEFAULT, default=1)
+    inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
+
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s: %s' % (self.id)
 
     class Meta:
         ordering = ('id',)
