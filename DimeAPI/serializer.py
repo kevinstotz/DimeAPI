@@ -33,14 +33,23 @@ class DimeHistorySerializer(ModelSerializer):
         return datetime.utcfromtimestamp(obj.time).strftime('%Y-%m-%d')
 
     def to_currency(self, obj):
-        return '${:,.2f}'.format(obj.value)
+        return '{:.2f}'.format(obj.value)
 
 
 class CurrencySerializer(ModelSerializer):
 
     class Meta:
         model = Currency
-        fields = ('id', 'name', 'symbol', 'coinName', 'fullName', 'totalCoinSupply', 'icon')
+        fields = ('id', 'name', 'symbol', 'coinName', 'fullName',)
+
+
+class DimePieChartSerializer(ModelSerializer):
+    name = serializers.SlugRelatedField(many=False, read_only=True, source='currency', slug_field='symbol')
+    value = serializers.FloatField( source='percent_of_dime')
+
+    class Meta:
+        model = DimeMutualFund
+        fields = ('name', 'value',)
 
 
 class DimePeriodSerializer(ModelSerializer):

@@ -19,7 +19,7 @@ from django.conf.urls  import url
 from django.conf.urls import include
 from two_factor.admin import AdminSiteOTPRequired
 from DimeAPI.views import LoginUser, RegisterUser, DimeIndex, ReadHistory, NewsLetterSubscribe,\
-    VerifyRegister, IndexPage, Dime
+    VerifyRegister, IndexPage, Dime, DimePieChart
 admin.autodiscover()
 # admin.site.__class__ = AdminSiteOTPRequired
 
@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^api/o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path(r'api/dime/index', DimeIndex.as_view(), name="dimeIndex"),
     path(r'api/dime/', Dime.as_view(), name="dime"),
+    path(r'api/dime/piechart/', DimePieChart.as_view(), name="dimePieChart"),
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
     path(r'api/newsletter', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
     path(r'api/register/', RegisterUser.as_view({"post": "create"}), name="registerUser"),

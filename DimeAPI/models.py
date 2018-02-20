@@ -335,23 +335,6 @@ class NewsLetter(models.Model):
         ordering = ('email', )
 
 
-class CurrencyHistory(models.Model):
-    id = models.AutoField(primary_key=True)
-    currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
-    price = models.FloatField(default=0)
-    marketCap = models.FloatField(default=0)
-    timestamp = UnixEpochDateTimeField()
-    totalCoinSupply = models.FloatField(default=0.0)
-
-    objects = models.Manager()
-
-    def __str__(self):
-        return '%s' % self.timestamp
-
-    class Meta:
-        ordering = ('id',)
-
-
 class Period(models.Model):
     id = models.AutoField(primary_key=True)
     start_year = models.IntegerField(default=2017)

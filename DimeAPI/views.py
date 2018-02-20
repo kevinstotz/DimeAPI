@@ -8,7 +8,7 @@ from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
 from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeMutualFund, \
     NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, Xchange, Period, DimeHistory
 from DimeAPI.serializer import RegisterSerializer, \
-    DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer
+    DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer
 from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch, DimeUtil
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -65,13 +65,21 @@ class IndexPage(generics.ListAPIView):
 
 
 class Dime(generics.ListAPIView):
-    model = DimeMutualFund
+    model = DimeHistory
     serializer_class = DimeHistorySerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
     queryset = DimeHistory.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('xchange',)
+
+
+class DimePieChart(generics.ListAPIView):
+    model = DimeMutualFund
+    serializer_class = DimePieChartSerializer
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+    queryset = DimeMutualFund.objects.filter(rebalance_date='2017-12-23')
 
 
 class DimeIndex(generics.ListAPIView):
