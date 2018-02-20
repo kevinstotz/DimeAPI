@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('DimeAPI', '0051_auto_20180216_1354'),
+       ('DimeAPI', '0050_auto_20180216_1349'),
     ]
 
     operations = [

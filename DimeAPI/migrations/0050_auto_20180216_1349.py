@@ -40,9 +40,9 @@ class Migration(migrations.Migration):
             old_name='rebalanceValue',
             new_name='rebalance_value',
         ),
-        migrations.AlterField(
-            model_name='dimemutualfund',
-            name='rebalanceDate',
-            field=models.DateField(),
-        ),
     ]
+    #    migrations.AlterField(
+    #       model_name='dimemutualfund',
+    #        name='rebalanceDate',
+    #        field=models.DateField(),
+    #    ),
