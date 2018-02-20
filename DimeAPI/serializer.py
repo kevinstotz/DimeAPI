@@ -23,6 +23,7 @@ class DimeIndexSerializer(ModelSerializer):
 
 class DimeHistorySerializer(ModelSerializer):
     name = serializers.SerializerMethodField('ts_to_date', source='time')
+    value = serializers.SerializerMethodField('to_currency')
 
     class Meta:
         model = DimeHistory
@@ -31,6 +32,8 @@ class DimeHistorySerializer(ModelSerializer):
     def ts_to_date(self, obj):
         return datetime.utcfromtimestamp(obj.time).strftime('%Y-%m-%d')
 
+    def to_currency(self, obj):
+        return '${:,.2f}'.format(obj.value)
 
 
 class CurrencySerializer(ModelSerializer):

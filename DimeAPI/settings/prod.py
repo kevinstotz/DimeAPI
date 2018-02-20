@@ -1,4 +1,4 @@
-from DimeAPI.settings.base import PROJECT_DIR
+
 from os.path import join
 from os import environ
 
@@ -22,7 +22,7 @@ DATABASES = {
 
 
 try:
-    from DimeAPI.settings import local
+    from . import local
 except ImportError:
     local = None
     raise ImportError('local settings import not found')
