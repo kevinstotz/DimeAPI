@@ -412,7 +412,11 @@ XCHANGE = {
     'GDAX': 2,
     'COINBASE': 3,
     'COINDESK': 4,
-    'COIN_MARKET_CAP': 5
+    'COIN_MARKET_CAP': 5,
+    'COIN_API': 6,
+    'BITTREX': 7,
+    'KRAKEN': 8,
+    'CRIX': 9
 }
 IPFS_LENGTH = 64
 ADDRESS_LENGTH = 42

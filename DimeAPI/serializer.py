@@ -113,7 +113,7 @@ class RegisterSerializer(ModelSerializer):
     class Meta:
         model = Register
         fields = ('email', 'password', 'ipAddress', 'authorizationCode', 'deviceInfo',
-                  'status', 'inserted', 'firstName', 'lastName',)
+                  'status', 'inserted', 'firstName', 'lastName', 'zipeCode')
         read_only_fields = ('ipAddress', 'authorizationCode', 'inserted',)
         extra_kwargs = {
             'authorizationCode ': {'required': False},

@@ -472,6 +472,7 @@ class Register(models.Model):
     password = models.CharField(max_length=PASSWORD_LENGTH, verbose_name="Password of Register", default="none")
     firstName = models.CharField(max_length=FIRST_NAME_LENGTH, verbose_name="First Name of Register")
     lastName = models.CharField(max_length=LAST_NAME_LENGTH, verbose_name="Last Name of Register")
+    zipCode = models.CharField(max_length=10, verbose_name="Zip Code of Register", default="00000")
     ipAddress = models.GenericIPAddressField(blank=True, null=True, verbose_name="IP Address of Register")
     deviceInfo = models.ForeignKey(UserAgent, on_delete=models.CASCADE)
     authorizationCode = models.CharField(max_length=AUTHORIZATION_CODE_LENGTH,

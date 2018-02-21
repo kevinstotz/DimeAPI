@@ -39,43 +39,5 @@ class Migration(migrations.Migration):
                 'ordering': ('id',),
             },
         ),
-        migrations.RenameField(
-            model_name='dimemutualfund',
-            old_name='end_price',
-            new_name='end_price',
-        ),
-        migrations.RenameField(
-            model_name='dimemutualfund',
-            old_name='endValue',
-            new_name='end_value',
-        ),
-        migrations.RenameField(
-            model_name='dimemutualfund',
-            old_name='marketCap',
-            new_name='market_cap',
-        ),
-        migrations.RenameField(
-            model_name='dimemutualfund',
-            old_name='percentOfDime',
-            new_name='percent_of_dime',
-        ),
-        migrations.RenameField(
-            model_name='dimemutualfund',
-            old_name='rebalancePrice',
-            new_name='rebalance_price',
-        ),
-        migrations.RenameField(
-            model_name='dimemutualfund',
-            old_name='rebalanceValue',
-            new_name='rebalance_value',
-        ),
-        migrations.RemoveField(
-            model_name='dimemutualfund',
-            name='rebalanceDate',
-        ),
-        migrations.AddField(
-            model_name='dimemutualfund',
-            name='rebalance_date',
-            field=models.DateField(default=datetime.date.today),
-        ),
+
     ]
