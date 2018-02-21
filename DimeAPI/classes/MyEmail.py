@@ -11,6 +11,7 @@ from DimeAPI.settings.base import \
     EMAIL_LOGIN_URL, \
     NOTIFICATION_TYPE, \
     EMAIL_VERIFY_ACCOUNT_URL, \
+    ENGINE_DOMAIN, \
     EMAIL_VERIFY_TRACK_URL, \
     EMAIL_ADDRESS_STATUS, \
     PASSWORD_RESET_URL, \
@@ -73,6 +74,56 @@ class MyEmail:
             logger.critical(result)
             return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
 
+    def send_contact_us(self, contactus):
+
+        try:
+            email_template = EmailTemplate.objects.get(pk=EMAIL_TEMPLATE['CONTACTUS'])
+            result = 'Getting  CONTACTUS :{0} from DB:'.format(email_template.html_name)
+            logger.debug(result)
+        except ObjectDoesNotExist:
+            result = 'Failed getting CONTACTUS record #:{0} from DB:'.format(EMAIL_TEMPLATE['CONTACTUS'])
+            logger.critical(result)
+            return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
+
+        notification = Notification()
+        notification.toUser = 1
+        notification.message = email_template.pk
+        notification.type = NotificationType(pk=NOTIFICATION_TYPE['EMAIL'])
+
+        try:
+            self.load_template(email_template.html_name)
+            result = 'read email template file:{0}'.format(email_template.html_name)
+            logger.debug(result)
+        except Exception as error:
+            result = 'Failed reading Email template:{0}'.format(email_template.html_name)
+            logger.critical(result)
+            logger.critical(error)
+            return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
+
+        self.subject = email_template.subject
+        self.fromEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
+        self.toEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
+        self.replace_string_in_template('EMAIL_VERIFY_TRACK_URL',
+                                        EMAIL_VERIFY_TRACK_URL + "contactus")
+        self.replace_string_in_template('NAME', contactus.validated_data['name'] + " ")
+        self.replace_string_in_template('EMAIL', contactus.validated_data['email'])
+        self.replace_string_in_template('MESSAGE', contactus.validated_data['message'])
+
+        if self.send() == 1:
+            notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['SENT'])
+            result = 'Contact us email sent to user ID:{0}'.format(contactus.validated_data['email'])
+            logger.debug(result)
+        else:
+            notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['FAILED'])
+            result = 'Failed sending email:{0} to user ID:{1}'.format(email_template.html_name,
+                                                                      contactus.validated_data['email'])
+            logger.error(result)
+            return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
+        notification.save()
+        result = 'Email sent!'
+        return ReturnResponse.Response(0, __name__, 'success', result).return_json()
+
+
     def send_verify_email(self, register_user):
 
         try:
@@ -102,6 +153,7 @@ class MyEmail:
         self.subject = email_template.subject
         self.fromEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
         self.toEmail = register_user.email
+
         self.replace_string_in_template('EMAIL_VERIFY_TRACK_URL',
                                         EMAIL_VERIFY_TRACK_URL + register_user.authorizationCode)
         self.replace_string_in_template('EMAIL_VERIFY_ACCOUNT_URL',

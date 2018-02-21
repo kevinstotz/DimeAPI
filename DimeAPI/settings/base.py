@@ -403,7 +403,8 @@ EMAIL_TEMPLATE = {
     'VERIFY': 1,
     'WELCOME': 2,
     'FORGOT': 3,
-    'RESET': 4
+    'RESET': 4,
+    'CONTACTUS': 5
 }
 
 XCHANGE = {

@@ -6,15 +6,15 @@ from datetime import datetime, timedelta
 from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
     EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE
 from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeMutualFund, \
-    NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, Xchange, Period, DimeHistory
-from DimeAPI.serializer import RegisterSerializer, \
+    NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, Xchange, Period, DimeHistory, \
+    Notification, ContactUsForm
+from DimeAPI.serializer import RegisterSerializer, NotificationSerializer, ContactUsFormSerializer, \
     DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer
 from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch, DimeUtil
 from django_filters.rest_framework import DjangoFilterBackend
 
 from DimeAPI.permissions import IsAuthenticatedOrCreate
 from DimeAPI.classes.UserUtil import get_client_ip
-from DimeAPI.coins import BTC
 from DimeAPI import coins
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -50,6 +50,31 @@ class LoginUser(generics.GenericAPIView):
         logger.error(result)
         return Response(ReturnResponse.Response(1, __name__, "Login Successful", result).return_json(),
                         status=status.HTTP_200_OK)
+
+
+class ContactUs(generics.CreateAPIView):
+    queryset = ContactUsForm.objects.all()
+    serializer_class = ContactUsFormSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        contact_us = ''
+        try:
+            print(request.data)
+            contact_us = self.get_serializer(self, data=request.data, partial=True)
+            contact_us.is_valid(raise_exception=True)
+        except Exception:
+            result = 'Failed to parse JSON:{0}'.format(request) + contact_us.errors
+            logger.error(result)
+            return Response(ReturnResponse.Response(1, __name__, "Contact Us send Failed", result).return_json(),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        contact_us.create(contact_us.validated_data)
+        my_email = MyEmail.MyEmail(name=contact_us.validated_data['name'])
+        my_email.send_contact_us(contact_us)
+        result = "Email Sent"
+        return Response(ReturnResponse.Response(0, __name__, "Email Sent!", result).return_json(),
+                        status=status.HTTP_201_CREATED)
 
 
 class IndexPage(generics.ListAPIView):

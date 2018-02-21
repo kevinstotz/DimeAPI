@@ -2,7 +2,8 @@
 from datetime import datetime
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
-from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeMutualFund, NewsLetter, UserAgent, Password, Currency, DimeHistory
+from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeMutualFund, NewsLetter, UserAgent, \
+    Password, Currency, DimeHistory, Notification, ContactUsForm
 from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH
 from DimeAPI.classes.UserUtil import get_authorization_code
 from DimeAPI.classes.EmailUtil import EmailUtil
@@ -69,6 +70,13 @@ class NewsLetterSerializer(ModelSerializer):
         return NewsLetter.objects.create(**validated_data)
 
 
+class NotificationSerializer(ModelSerializer):
+
+    class Meta:
+        model = Notification
+        fields = ('id',)
+
+
 class RegisterStatusSerializer(ModelSerializer):
 
     class Meta:
@@ -88,6 +96,14 @@ class UserAgentSerializer(ModelSerializer):
     class Meta:
         model = UserAgent
         fields = ('userAgent', 'os', 'browser', 'device', 'os_version', 'browser_version',)
+
+
+class ContactUsFormSerializer(ModelSerializer):
+    pass
+
+    class Meta:
+        model = ContactUsForm
+        fields = ('name', 'email', 'message', 'subject',)
 
 
 class RegisterSerializer(ModelSerializer):

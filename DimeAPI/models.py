@@ -477,12 +477,31 @@ class Register(models.Model):
     authorizationCode = models.CharField(max_length=AUTHORIZATION_CODE_LENGTH,
                                          blank=False,
                                          verbose_name="Auto Generated Auth Code")
-    inserted = models.DateTimeField(verbose_name="Date of Registration")
+    inserted = models.DateTimeField(auto_now_add=True, verbose_name="Date of Registration")
     status = models.ForeignKey(RegisterStatus, on_delete=models.PROTECT, default=1)
     objects = models.Manager()
 
     def __str__(self):
         return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class ContactUsForm(models.Model):
+    id = models.AutoField(primary_key=True)
+    email = models.EmailField(max_length=EMAIL_LENGTH,
+                              blank=False,
+                              default='noemail@noemail.com',
+                              verbose_name="Email")
+    subject = models.CharField(max_length=50, verbose_name="Subject of email")
+    name = models.CharField(max_length=LAST_NAME_LENGTH + FIRST_NAME_LENGTH, verbose_name="name of person")
+    message = models.CharField(max_length=255, verbose_name="message")
+    inserted = models.DateTimeField("Date of contact", auto_now_add=True)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.email
 
     class Meta:
         ordering = ('id',)
