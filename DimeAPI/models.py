@@ -370,7 +370,6 @@ class Vendor(models.Model):
     class Meta:
         ordering = ('id', 'name',)
 
-
 class DimePeriod(models.Model):
     id = models.AutoField(primary_key=True)
     period = models.ForeignKey(Period, on_delete=models.SET_DEFAULT, default=1)
@@ -430,6 +429,7 @@ class DimeHistory(models.Model):
         return '%s: %s' % (self.id)
 
     class Meta:
+        unique_together = (("time", "xchange"),)
         ordering = ('id',)
 
 

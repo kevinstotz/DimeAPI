@@ -53,6 +53,15 @@ class DimePieChartSerializer(ModelSerializer):
         fields = ('name', 'value',)
 
 
+class DimeTableChartSerializer(ModelSerializer):
+    name = serializers.SlugRelatedField(many=False, read_only=True, source='currency', slug_field='symbol')
+    value = serializers.FloatField( source='percent_of_dime')
+
+    class Meta:
+        model = DimeMutualFund
+        fields = ('rank', 'name', 'value', 'percent_of_dime', 'market_cap' )
+
+
 class DimePeriodSerializer(ModelSerializer):
 
     class Meta:
@@ -64,7 +73,8 @@ class DimePeriodSerializer(ModelSerializer):
 class NewsLetterSerializer(ModelSerializer):
     class Meta:
         model = NewsLetter
-        fields = ('email', 'timestamp',)
+        read_only_fields =  ('timestamp',)
+        fields = ('email', )
 
     def create(self, validated_data):
         return NewsLetter.objects.create(**validated_data)
@@ -113,7 +123,7 @@ class RegisterSerializer(ModelSerializer):
     class Meta:
         model = Register
         fields = ('email', 'password', 'ipAddress', 'authorizationCode', 'deviceInfo',
-                  'status', 'inserted', 'firstName', 'lastName', 'zipeCode')
+                  'status', 'inserted', 'firstName', 'lastName', 'zipCode')
         read_only_fields = ('ipAddress', 'authorizationCode', 'inserted',)
         extra_kwargs = {
             'authorizationCode ': {'required': False},

@@ -19,7 +19,7 @@ from django.conf.urls  import url
 from django.conf.urls import include
 from two_factor.admin import AdminSiteOTPRequired
 from DimeAPI.views import LoginUser, RegisterUser, DimeIndex, ReadHistory, NewsLetterSubscribe,\
-    VerifyRegister, ContactUs, Dime, DimePieChart
+    VerifyRegister, ContactUs, Dime, DimePieChart, DimeTableChart
 admin.autodiscover()
 # admin.site.__class__ = AdminSiteOTPRequired
 
@@ -29,6 +29,7 @@ urlpatterns = [
     path(r'api/dime/index', DimeIndex.as_view(), name="dimeIndex"),
     path(r'api/dime/', Dime.as_view(), name="dime"),
     path(r'api/dime/piechart/', DimePieChart.as_view(), name="dimePieChart"),
+    path(r'api/dime/tablechart/', DimeTableChart.as_view(), name="dimeTableChart"),
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
     path(r'api/newsletter', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
     path(r'api/contactus/', ContactUs.as_view(), name="contactus"),

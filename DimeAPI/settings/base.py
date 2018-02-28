@@ -41,6 +41,7 @@ ALLOWED_HOSTS = [ENGINE_HOSTNAME]
 
 INSTALLED_APPS = [
     'DimeAPI',
+    'DimeCoins',
     'reset_migrations',
     'corsheaders',
     'oauth2_provider',
