@@ -46,7 +46,7 @@ DATABASES = {
 }
 
 try:
-    from . import local
+    from .local import *
 except ImportError:
     local = None
     raise ImportError('local settings import not found')

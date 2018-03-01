@@ -1,4 +1,4 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from DimeAPI.models import Xchange, DimeMutualFund, Period, DimeHistory
 from django.core.management.base import BaseCommand
 from DimeAPI.settings.base import XCHANGE
@@ -39,9 +39,17 @@ class Command(BaseCommand):
 
                     running_total = running_total + coin.amount * index.close
                 xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
-                dimeHistory = DimeHistory(time=int(calendar.timegm(start_date.timetuple())),
-                                          value=running_total,
-                                          xchange=xchange)
-                dimeHistory.save()
+                try:
+                    dimeHistory = DimeHistory.objects.get(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
+                    dimeHistory.save()
+                except ObjectDoesNotExist:
+                    dimeHistory = DimeHistory(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
+                    dimeHistory.value = running_total
+                    dimeHistory.save()
+                    
+                except MultipleObjectsReturned:
+                    print("found multiple entries for: {0} {1}".format(int(calendar.timegm(start_date.timetuple())), xchange.pk ))
+                    continue
+
                 start_date = start_date + timedelta(days=1)
         return

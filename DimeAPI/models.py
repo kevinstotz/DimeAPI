@@ -370,27 +370,6 @@ class Vendor(models.Model):
     class Meta:
         ordering = ('id', 'name',)
 
-class DimePeriod(models.Model):
-    id = models.AutoField(primary_key=True)
-    period = models.ForeignKey(Period, on_delete=models.SET_DEFAULT, default=1)
-    currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
-    rank = models.SmallIntegerField(default=0)
-    level = models.FloatField(default=0.0)
-    rebalancePrice = models.FloatField(default=0.0)
-    marketCap = models.BigIntegerField(default=0)
-    percentOfDime = models.FloatField(default=0.0)
-    amount = models.FloatField(default=0.0)
-    rebalanceValue = models.FloatField(default=0.0)
-    endPrice = models.FloatField(default=0.0)
-    endValue = models.FloatField(default=0.0)
-    objects = models.Manager()
-
-    def __str__(self):
-        return '%s: %s' % (self.period, self.currency)
-
-    class Meta:
-        ordering = ('id',)
-
 
 class DimeMutualFund(models.Model):
     id = models.AutoField(primary_key=True)
