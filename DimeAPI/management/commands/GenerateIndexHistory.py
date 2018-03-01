@@ -11,7 +11,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        values = dict()
         periods = Period.objects.all()[1:]
         for period in periods:
             start_date = datetime.strptime(str(period.start_year) + '-' + str(period.start_month) + '-' + str(period.start_day), '%Y-%m-%d').date()
@@ -46,9 +45,9 @@ class Command(BaseCommand):
                     dimeHistory = DimeHistory(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
                     dimeHistory.value = running_total
                     dimeHistory.save()
-                    
+
                 except MultipleObjectsReturned:
-                    print("found multiple entries for: {0} {1}".format(int(calendar.timegm(start_date.timetuple())), xchange.pk ))
+                    print("found multiple entries for: {0} {1}".format(int(calendar.timegm(start_date.timetuple())), xchange.pk))
                     continue
 
                 start_date = start_date + timedelta(days=1)
