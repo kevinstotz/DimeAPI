@@ -1,10 +1,10 @@
-
-from datetime import datetime
+import time
+from datetime import datetime, timezone
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeMutualFund, NewsLetter, UserAgent, \
-    Password, Currency, DimeHistory, Notification, ContactUsForm
-from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH
+    Password, Currency, DimeHistory, Notification, ContactUsForm, Period, Xchange
+from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH, XCHANGE
 from DimeAPI.classes.UserUtil import get_authorization_code
 from DimeAPI.classes.EmailUtil import EmailUtil
 
@@ -34,7 +34,7 @@ class DimeHistorySerializer(ModelSerializer):
         return datetime.utcfromtimestamp(obj.time).strftime('%Y-%m-%d')
 
     def to_currency(self, obj):
-        return '{:.2f}'.format(obj.value)
+        return '{:.2f}'.format(obj.value*100.0)
 
 
 class CurrencySerializer(ModelSerializer):
@@ -44,9 +44,32 @@ class CurrencySerializer(ModelSerializer):
         fields = ('id', 'name', 'symbol', 'coinName', 'fullName',)
 
 
+class DimeRebalanceDateValueSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField(method_name='to_date')
+    value = serializers.SerializerMethodField(method_name='to_value')
+
+    class Meta:
+        model = Period
+        fields = ('name', 'value',)
+
+    def to_value(self, obj):
+        rebalance_date = datetime(obj.start_year, obj.start_month, obj.start_day, 0, 0, 0, tzinfo=timezone.utc)
+        try:
+            xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
+            dimeHistory = DimeHistory.objects.get(time=int(rebalance_date.timestamp()), xchange=xchange)
+        except:
+            print("could not get entry in history for {0}".format(int(rebalance_date.timestamp())))
+            return 0
+        return '{:.2f}'.format(dimeHistory.value)
+
+    def to_date(self, obj):
+        rebalance_date = datetime(obj.start_year, obj.start_month, obj.start_day, 0, 0, 0, tzinfo=timezone.utc)
+        return rebalance_date.strftime('%Y-%m-%d')
+
+
 class DimePieChartSerializer(ModelSerializer):
     name = serializers.SlugRelatedField(many=False, read_only=True, source='currency', slug_field='symbol')
-    value = serializers.FloatField( source='percent_of_dime')
+    value = serializers.FloatField(source='percent_of_dime')
 
     class Meta:
         model = DimeMutualFund
@@ -55,11 +78,11 @@ class DimePieChartSerializer(ModelSerializer):
 
 class DimeTableChartSerializer(ModelSerializer):
     name = serializers.SlugRelatedField(many=False, read_only=True, source='currency', slug_field='symbol')
-    value = serializers.FloatField( source='percent_of_dime')
+    value = serializers.FloatField(source='percent_of_dime')
 
     class Meta:
         model = DimeMutualFund
-        fields = ('rank', 'name', 'value', 'percent_of_dime', 'market_cap' )
+        fields = ('rank', 'name', 'value', 'percent_of_dime', 'market_cap')
 
 
 class DimePeriodSerializer(ModelSerializer):
@@ -71,14 +94,13 @@ class DimePeriodSerializer(ModelSerializer):
 
 
 class NewsLetterSerializer(ModelSerializer):
+    timestamp = serializers.SerializerMethodField(method_name='to_utcts')
     class Meta:
         model = NewsLetter
-        read_only_fields =  ('timestamp',)
-        fields = ('email', )
+        fields = ('email', 'timestamp',)
 
-    def create(self, validated_data):
-        return NewsLetter.objects.create(**validated_data)
-
+    def to_utcts(self, obj):
+        return time.mktime(datetime.utcnow().timetuple())
 
 class NotificationSerializer(ModelSerializer):
 

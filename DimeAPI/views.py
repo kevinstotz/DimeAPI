@@ -10,7 +10,8 @@ from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeMutualFund,
     NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, Xchange, Period, DimeHistory, \
     Notification, ContactUsForm
 from DimeAPI.serializer import RegisterSerializer, DimeTableChartSerializer, ContactUsFormSerializer, \
-    DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer
+    DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer, \
+    DimeRebalanceDateValueSerializer
 from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -89,14 +90,25 @@ class IndexPage(generics.ListAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class Dime(generics.ListAPIView):
+class DimeLineChart(generics.ListAPIView):
     model = DimeHistory
     serializer_class = DimeHistorySerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
     queryset = DimeHistory.objects.all()
     filter_backends = (DjangoFilterBackend,)
+    ordering = ('name',)
     filter_fields = ('xchange',)
+
+
+class DimeRebalanceDateValue(generics.ListAPIView):
+    model = Period
+    serializer_class = DimeRebalanceDateValueSerializer
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+    now = datetime.utcnow()
+    queryset = Period.objects.all()
+    queryset = Period.objects.filter(pk__gt=0, pk__lte=5)
 
 
 class DimePieChart(generics.ListAPIView):
@@ -171,27 +183,24 @@ class NewsLetterSubscribe(generics.GenericAPIView):
 
     def post(self, request):
         news_letter = ""
-        try:
-            news_letter = self.get_serializer(self, data=request.data, partial=True)
-            news_letter.is_valid(raise_exception=True)
-            print("FD")
-        except Exception:
-            print(news_letter.errors)
-            result = 'Failed to parse JSON:{0}'.format(request) + news_letter.errors
 
-            logger.error(result)
-            return Response(ReturnResponse.Response(1, __name__, "Subscription Failed", result).return_json(),
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        if NewsLetter.objects.filter(pk=news_letter.initial_data['email']).exists():
-
+        if NewsLetter.objects.filter(email=request.data['email']).exists():
             result = "Email exists."
             print(result)
             logger.error(result)
             return Response(ReturnResponse.Response(1, __name__, "Subscription Failed", result).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        news_letter.create(news_letter.validated_data)
+        try:
+            news_letter = NewsLetterSerializer(data=request.data, many=False, partial=True)
+            news_letter.is_valid(raise_exception=True)
+            news_letter.save()
+        except Exception as error:
+            result = 'Failed to parse JSON:{0}'.format(request) + error
+            logger.error(result)
+            return Response(ReturnResponse.Response(1, __name__, "Subscription Failed", result).return_json(),
+                            status=status.HTTP_400_BAD_REQUEST)
+
         result = "Joined Mailing List"
         return Response(ReturnResponse.Response(0, __name__, "Subscription Successful", result).return_json(),
                         status=status.HTTP_201_CREATED)

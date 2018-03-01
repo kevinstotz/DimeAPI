@@ -309,6 +309,7 @@ class CryptoCompareCoin(models.Model):
     class Meta:
         ordering = ('name',)
 
+
 class XchangeCurrency(models.Model):
     currencyXChange = models.ForeignKey(Xchange, on_delete=models.SET_DEFAULT, default=1)
     currency = models.IntegerField(default=0)
@@ -323,8 +324,8 @@ class XchangeCurrency(models.Model):
 
 
 class NewsLetter(models.Model):
-    email = models.EmailField(default="noemail@thedime.fund", primary_key=True)
-    timestamp = UnixEpochDateTimeField(allow_null=True)
+    email = models.EmailField(max_length=EMAIL_LENGTH, default="noemail@thedime.fund", primary_key=True)
+    timestamp = models.BigIntegerField(default=0)
 
     objects = models.Manager()
 

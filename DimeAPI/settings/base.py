@@ -38,10 +38,10 @@ ENGINE_HOSTNAME_URL = SECURE + ENGINE_HOSTNAME + ":" + str(ENGINE_PORT)
 ALLOWED_HOSTS = [ENGINE_HOSTNAME]
 
 # Application definition
-
+#     'DimeCoins',
 INSTALLED_APPS = [
     'DimeAPI',
-    'DimeCoins',
+
     'reset_migrations',
     'corsheaders',
     'oauth2_provider',

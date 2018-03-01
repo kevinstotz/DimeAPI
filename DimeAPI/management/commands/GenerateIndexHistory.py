@@ -40,6 +40,7 @@ class Command(BaseCommand):
                 xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
                 try:
                     dimeHistory = DimeHistory.objects.get(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
+                    dimeHistory.value = running_total
                     dimeHistory.save()
                 except ObjectDoesNotExist:
                     dimeHistory = DimeHistory(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
