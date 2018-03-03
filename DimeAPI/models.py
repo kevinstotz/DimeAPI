@@ -283,33 +283,6 @@ class Currency(models.Model):
         ordering = ('id',)
 
 
-class CryptoCompareCoin(models.Model):
-    xchange_coin = models.IntegerField(default=1)
-    local_coin = models.OneToOneField(Currency, on_delete=models.CASCADE, primary_key=True, related_name='cryptoCompareCoin')
-    xchange = models.ForeignKey(Xchange, on_delete=models.CASCADE)
-    url = models.CharField(max_length=200, default="")
-    image_url = models.CharField(max_length=200, default="")
-    name = models.CharField(max_length=CURRENCY_NAME_LENGTH, default="")
-    symbol = models.CharField(max_length=COIN_SYMBOL_LENGTH, default="")
-    coin_name = models.CharField(max_length=COIN_NAME_LENGTH, default="")
-    full_name = models.CharField(max_length=COIN_FULL_NAME_LENGTH, default="")
-    algorithm = models.CharField(max_length=50, default="")
-    proof_type = models.CharField(max_length=50, default="")
-    fully_premined = models.SmallIntegerField(default=1)
-    total_coin_supply = models.FloatField(default=0.0)
-    pre_mined_value = models.CharField(max_length=20, default="")
-    total_coins_free_float = models.CharField(max_length=20, default="")
-    sort_order = models.SmallIntegerField(default=1)
-    sponsored = models.BooleanField(default=False)
-    objects = models.Manager()
-
-    def __str__(self):
-        return '%s' % self.name
-
-    class Meta:
-        ordering = ('name',)
-
-
 class XchangeCurrency(models.Model):
     currencyXChange = models.ForeignKey(Xchange, on_delete=models.SET_DEFAULT, default=1)
     currency = models.IntegerField(default=0)
@@ -435,6 +408,28 @@ class UserAgent(models.Model):
 class Password(models.Model):
     id = models.AutoField(primary_key=True)
     password = models.CharField(max_length=PASSWORD_LENGTH, verbose_name="Password")
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class Affiliate(models.Model):
+    id = models.AutoField(primary_key=True)
+    email = models.EmailField(max_length=EMAIL_LENGTH,
+                              blank=False,
+                              default='noemail@noemail.com',
+                              verbose_name="Email of Affiliate")
+    firstName = models.CharField(max_length=FIRST_NAME_LENGTH, verbose_name="First Name of Affiliate")
+    lastName = models.CharField(max_length=LAST_NAME_LENGTH, verbose_name="Last Name of Affiliate")
+    zipCode = models.CharField(max_length=10, verbose_name="Zip Code of Affiliate", default="00000")
+    phoneNumber = models.CharField(max_length=20, verbose_name="Phone Number of Affiliate", default="0000000000")
+    companyName = models.CharField(max_length=LAST_NAME_LENGTH, verbose_name="Company Name of Affiliate")
+    inserted = models.DateTimeField(auto_now_add=True, verbose_name="Date of Registration")
+    status = models.ForeignKey(RegisterStatus, on_delete=models.PROTECT, default=1)
+    objects = models.Manager()
 
     def __str__(self):
         return '%s' % self.id

@@ -462,7 +462,7 @@ class MyEmail:
             logger.critical(error)
 
         utils = UserUtil.Util()
-        new_password = generate_password()
+        new_password = utils.generate_password()
         user.set_password(new_password)
         user.save()
         self.replace_string_in_template('NEW_PASSWORD', str(new_password))

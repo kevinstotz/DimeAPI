@@ -8,10 +8,11 @@ from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
     EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE
 from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeMutualFund, \
     NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, Xchange, Period, DimeHistory, \
-    Notification, ContactUsForm
+    Notification, ContactUsForm, Affiliate
+
 from DimeAPI.serializer import RegisterSerializer, DimeTableChartSerializer, ContactUsFormSerializer, \
     DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer, \
-    DimeRebalanceDateValueSerializer
+    DimeRebalanceDateValueSerializer, RegisterAffiliateSerializer
 from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -252,6 +253,43 @@ class RegisterUser(CreateModelMixin, viewsets.GenericViewSet):
         my_email = MyEmail.MyEmail('Verify Email')
 
         result = my_email.send_verify_email(register_user)
+        logger.debug(result)
+        return Response(ReturnResponse.Response(1, __name__, 'success', result).return_json(),
+                        status=status.HTTP_201_CREATED)
+
+    def post(self, request):
+        print(request.data)
+
+
+class RegisterAffiliate(CreateModelMixin, viewsets.GenericViewSet):
+    model = Affiliate
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterAffiliateSerializer
+    queryset = Affiliate.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = RegisterAffiliateSerializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            register_affiliate = serializer.save()
+        except serializers.ValidationError as error:
+            result = '{0}:'.format(error)
+            logger.error(result)
+            logger.error(serializer.errors)
+            return Response(ReturnResponse.Response(1, __name__, 'Email Address Already Exists', result).return_json(),
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Exception as error:
+            result = 'Failed parsing JSon:{0}'.format(request)
+            logger.error(result)
+            logger.error(error)
+            logger.error(register_affiliate.errors)
+            return Response(ReturnResponse.Response(1, __name__, 'Failed parsing Json', result).return_json(),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        my_email = MyEmail.MyEmail('Register Affiliate')
+
+        result = my_email.send_register_affiliate_email(register_affiliate)
         logger.debug(result)
         return Response(ReturnResponse.Response(1, __name__, 'success', result).return_json(),
                         status=status.HTTP_201_CREATED)

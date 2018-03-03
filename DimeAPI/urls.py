@@ -19,7 +19,8 @@ from django.conf.urls  import url
 from django.conf.urls import include
 from two_factor.admin import AdminSiteOTPRequired
 from DimeAPI.views import LoginUser, RegisterUser, DimeIndex, ReadHistory, NewsLetterSubscribe, \
-    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, DimeRebalanceDateValue
+    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, DimeRebalanceDateValue, \
+    RegisterAffiliate
 admin.autodiscover()
 # admin.site.__class__ = AdminSiteOTPRequired
 
@@ -31,10 +32,14 @@ urlpatterns = [
     path(r'api/dime/piechart/', DimePieChart.as_view(), name="dimePieChart"),
     path(r'api/dime/tablechart/', DimeTableChart.as_view(), name="dimeTableChart"),
     path(r'api/dime/rebalancedatesandvalues/', DimeRebalanceDateValue.as_view(), name="dimeRebalanceDateValue"),
+
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
+
     path(r'api/newsletter', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
     path(r'api/contactus/', ContactUs.as_view(), name="contactus"),
+
     path(r'api/register/', RegisterUser.as_view({"post": "create"}), name="registerUser"),
+    path(r'api/affiliate/register/', RegisterAffiliate.as_view({"post": "create"}), name="registerAffiliate"),
     path(r'account/login/', LoginUser.as_view(), name="loginUser"),
     path(r'api/register/verify/<slug:Authorization_Code>', VerifyRegister.as_view(), name="verifyRegisterUser"),
     # path(r'', IndexPage.as_view(), name="indexPage"),

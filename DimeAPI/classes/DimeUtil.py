@@ -1,4 +1,4 @@
-from django.db.models import Sum
+
 from DimeAPI.serializer import DimePeriodSerializer
 from DimeAPI.models import Currency, Period, DimeMutualFund, Xchange
 from DimeAPI.settings.base import XCHANGE
@@ -69,42 +69,3 @@ class DimeUtil:
         top_currencies = requests.get(url)
         return top_currencies.json()
 
-    def calculateDimeIndex(self, period_id=1):
-        period = Period.objects.get(pk=period_id)
-
-        period_start_date = str(period.start_year) + "-" + str(period.start_month) + "-" + str(period.start_day)
-        period_start_date = datetime.strptime(period_start_date, '%Y-%M-%D')
-
-        period_end_date = str(period.end_year) + "-" + str(period.end_month) + "-" + str(period.end_day)
-        period_end_date = datetime.strptime(period_end_date, '%Y-%M-%D')
-
-        if period_end_date.timestamp() > datetime.utcnow().timestamp():
-            period_end_date = datetime.utcnow()
-
-        prior_period = Period.objects.get(pk=(period_id-1))
-
-        prior_period_start_date = str(prior_period.start_year) + "-" + str(prior_period.start_month) + "-" + str(prior_period.start_day)
-        prior_period_start_date = datetime.strptime(prior_period_start_date, '%Y-%M-%D')
-
-        total_cap_market_sum = DimeMutualFund.objects.filter(rebalance_date=period_start_date).aggregate(value=Sum('market_cap'))
-        index_value = DimeMutualFund.objects.filter(rebalance_date=prior_period_start_date).aggregate(value=Sum('end_value'))
-        dime_indexes = DimeMutualFund.objects.filter(rebalance_date=period_start_date).order_by('-market_cap')
-        idx = 1
-
-        for dime_index in dime_indexes:
-            if period.pk == 1:
-                dime_index.level = 10
-            else:
-                dime_index.level = index_value['value']
-
-            dime_index.percent_of_dime = dime_index.market_cap / total_cap_market_sum['value'] * 100.0
-            dime_index.amount = (dime_index.percent_of_dime / 100.0 * dime_index.level) / dime_index.rebalance_price
-            dime_index.rebalance_value = dime_index.rebalancePrice * dime_index.amount
-            dime_index.rebalance_price = self.exchange.getSpotPrice(dime_index.currency, date_of_request=period_start_date.timetuple())
-
-            dime_index.end_price = self.exchange.getSpotPrice(dime_index.currency, date_of_request=period_end_date.timetuple())
-            dime_index.end_value = dime_index.end_price * dime_index.amount
-            dime_index.rank = idx
-            idx = idx + 1
-
-            dime_index.save()

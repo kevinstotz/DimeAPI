@@ -1,0 +1,20 @@
+
+Welcome FIRST_NAME
+
+Your account information
+
+username:USERNAME
+
+password:PASSWORD
+
+Getting Started
+
+URL
+
+If you are having any issues with your account, please don't hesitate to contact us by replying to this mail.
+Thanks!
+
+You are receiving this email because you have an account at The Dime Index. If you are not sure why you are receiving this, please contact us.
+
+Sincerely
+Support

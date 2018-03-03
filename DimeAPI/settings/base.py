@@ -41,7 +41,7 @@ ALLOWED_HOSTS = [ENGINE_HOSTNAME]
 #     'DimeCoins',
 INSTALLED_APPS = [
     'DimeAPI',
-
+    'DimeCoins',
     'reset_migrations',
     'corsheaders',
     'oauth2_provider',
@@ -405,7 +405,8 @@ EMAIL_TEMPLATE = {
     'WELCOME': 2,
     'FORGOT': 3,
     'RESET': 4,
-    'CONTACTUS': 5
+    'CONTACTUS': 5,
+    'AFFILIATE': 6
 }
 
 XCHANGE = {
