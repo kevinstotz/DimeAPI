@@ -7,11 +7,11 @@ from datetime import datetime, timedelta
 from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
     EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE
 from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeFund, \
-    NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, Xchange, Period, DimeHistory, \
-    Notification, ContactUsForm, Affiliate
+    NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, DimeHistory, \
+    DimePeriod, ContactUsForm, Affiliate
 
 from DimeAPI.serializer import RegisterSerializer, DimeTableChartSerializer, ContactUsFormSerializer, \
-    DimeIndexSerializer, NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer, \
+    NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer, \
     DimeRebalanceDateValueSerializer, RegisterAffiliateSerializer
 from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch
 from django_filters.rest_framework import DjangoFilterBackend
@@ -80,8 +80,6 @@ class ContactUs(generics.CreateAPIView):
 
 
 class IndexPage(generics.ListAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
     permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
@@ -99,17 +97,15 @@ class DimeLineChart(generics.ListAPIView):
     queryset = DimeHistory.objects.all().filter(xchange=XCHANGE['COIN_MARKET_CAP'])
     filter_backends = (DjangoFilterBackend,)
     ordering = ('name',)
-    filter_fields = ('xchange', )
+    filter_fields = ('xchange',)
 
 
 class DimeRebalanceDateValue(generics.ListAPIView):
-    model = Period
+    model = DimePeriod
     serializer_class = DimeRebalanceDateValueSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    now = datetime.utcnow()
-    queryset = Period.objects.all()
-    queryset = Period.objects.filter(pk__gt=0, pk__lte=5)
+    queryset = DimePeriod.objects.all()[1:]
 
 
 class DimePieChart(generics.ListAPIView):
@@ -126,52 +122,6 @@ class DimeTableChart(generics.ListAPIView):
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
     queryset = DimeFund.objects.filter(rebalance_date='2017-12-23')
-
-
-class DimeIndex(generics.ListAPIView):
-    model = DimeFund
-    serializer_class = DimeIndexSerializer
-    parser_classes = (JSONParser,)
-    permission_classes = (AllowAny,)
-    queryset = DimeFund.objects.all()
-
-    def get(self, request, *args, **kwargs):
-
-
-        values = dict()
-        periods = Period.objects.all()[1:]
-        for period in periods:
-            start_date = datetime.strptime(str(period.start_year) + '-' + str(period.start_month) + '-' + str(period.start_day), '%Y-%m-%d').date()
-            rebalance_date = start_date
-
-            end_date = datetime.strptime(str(period.end_year) + '-' + str(period.end_month) + '-' + str(period.end_day), '%Y-%m-%d').date()
-            if end_date > datetime.utcnow().date():
-                end_date = datetime.utcnow().date()
-            while start_date < end_date:
-
-                dimeindex = DimeFund.objects.filter(rebalance_date=rebalance_date)
-                running_total = 0
-                for coin in dimeindex:
-                    coin_class = apps.get_model(app_label='DimeCoins', model_name=coin.currency.symbol)
-                    try:
-                        xchange_model = apps.get_model('DimeCoins', 'Xchange')
-                        xchange_mod = xchange_model.objects.using('coins').get(pk=XCHANGE['COIN_MARKET_CAP'])
-                        index = coin_class.objects.using('coins').get(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange_mod)
-                    except ObjectDoesNotExist as error:
-                        print(error)
-                        return
-                    except TypeError as error:
-                        print(error)
-                        return
-
-                    running_total = running_total + coin.amount * index.close
-                xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
-                dimeHistory = DimeHistory(time=int(calendar.timegm(start_date.timetuple())),
-                                          value=running_total,
-                                          xchange=xchange)
-                dimeHistory.save()
-                start_date = start_date + timedelta(days=1)
-        return Response(ReturnResponse.Response(1, __name__, "Done", 0).return_json(), status=status.HTTP_200_OK)
 
 
 class NewsLetterSubscribe(generics.GenericAPIView):

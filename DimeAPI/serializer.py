@@ -1,13 +1,14 @@
 import time
-from datetime import datetime, timezone
+from datetime import datetime
+import calendar
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeFund, NewsLetter, UserAgent, \
-    Password, Currency, DimeHistory, Notification, ContactUsForm, Period, Xchange, Affiliate
+    Password, Currency, DimeHistory, Notification, ContactUsForm, DimePeriod, Xchange, Affiliate
 from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH, XCHANGE
 from DimeAPI.classes.UserUtil import get_authorization_code
 from DimeAPI.classes.EmailUtil import EmailUtil
-
+from django.core.exceptions import ObjectDoesNotExist
 
 class CustomUserSerializer(ModelSerializer):
     class Meta:
@@ -15,26 +16,34 @@ class CustomUserSerializer(ModelSerializer):
         fields = ('id', 'email',)
 
 
-class DimeIndexSerializer(ModelSerializer):
+class DimePeriodSerializer(ModelSerializer):
 
     class Meta:
-        model = DimeFund
-        fields = ('id', 'currency',)
+        model = DimePeriod
+        fields = ('start_date', 'end_date',)
 
 
 class DimeHistorySerializer(ModelSerializer):
     name = serializers.SerializerMethodField('ts_to_date', source='time')
     value = serializers.SerializerMethodField('to_currency')
+    rebalance = serializers.SerializerMethodField('is_rebalance_date', source='time')
 
     class Meta:
         model = DimeHistory
-        fields = ('name', 'value',)
+        fields = ('name', 'value', 'rebalance')
 
     def ts_to_date(self, obj):
         return datetime.utcfromtimestamp(obj.time).strftime('%Y-%m-%d')
 
     def to_currency(self, obj):
         return '{:.2f}'.format(obj.value * 100.0)
+
+    def is_rebalance_date(self, obj):
+        try:
+            DimePeriod.objects.get(start_date=datetime.utcfromtimestamp(obj.time).strftime('%Y-%m-%d'))
+        except ObjectDoesNotExist as error:
+            return 0
+        return 1
 
 
 class CurrencySerializer(ModelSerializer):
@@ -45,26 +54,22 @@ class CurrencySerializer(ModelSerializer):
 
 
 class DimeRebalanceDateValueSerializer(ModelSerializer):
-    name = serializers.SerializerMethodField(method_name='to_date')
-    value = serializers.SerializerMethodField(method_name='to_value')
+    name = serializers.DateField(source='start_date')
+    value = serializers.SerializerMethodField(source='start_date', method_name='to_value')
 
     class Meta:
-        model = Period
+        model = DimePeriod
         fields = ('name', 'value',)
 
     def to_value(self, obj):
-        rebalance_date = datetime(obj.start_year, obj.start_month, obj.start_day, 0, 0, 0, tzinfo=timezone.utc)
+
         try:
             xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
-            dimeHistory = DimeHistory.objects.get(time=int(rebalance_date.timestamp()), xchange=xchange)
+            dimeHistory = DimeHistory.objects.get(time=int(calendar.timegm(obj.start_date.timetuple())), xchange=xchange)
         except:
-            print("could not get entry in history for {0}".format(int(rebalance_date.timestamp())))
+            print("could not get entry in history for {0}".format(int(calendar.timegm(obj.start_date.timetuple()))))
             return 0
         return '{:.2f}'.format(dimeHistory.value)
-
-    def to_date(self, obj):
-        rebalance_date = datetime(obj.start_year, obj.start_month, obj.start_day, 0, 0, 0, tzinfo=timezone.utc)
-        return rebalance_date.strftime('%Y-%m-%d')
 
 
 class DimePieChartSerializer(ModelSerializer):

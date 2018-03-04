@@ -309,25 +309,6 @@ class NewsLetter(models.Model):
         ordering = ('email', )
 
 
-class Period(models.Model):
-    id = models.AutoField(primary_key=True)
-    start_year = models.IntegerField(default=2017)
-    start_month = models.IntegerField(default=1)
-    start_day = models.IntegerField(default=1)
-    end_year = models.IntegerField(default=2017)
-    end_month = models.IntegerField(default=1)
-    end_day = models.IntegerField(default=1)
-    num_of_coins = models.IntegerField(default=10)
-
-    objects = models.Manager()
-
-    def __str__(self):
-        return '%s' % self.id
-
-    class Meta:
-        ordering = ('id',)
-
-
 class DimePeriod(models.Model):
     id = models.AutoField(primary_key=True)
     start_date = models.DateField()

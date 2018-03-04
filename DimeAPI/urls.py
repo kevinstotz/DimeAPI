@@ -18,20 +18,18 @@ from django.urls import path
 from django.conf.urls  import url
 from django.conf.urls import include
 from two_factor.admin import AdminSiteOTPRequired
-from DimeAPI.views import LoginUser, RegisterUser, DimeIndex, ReadHistory, NewsLetterSubscribe, \
-    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, DimeRebalanceDateValue, \
-    RegisterAffiliate
+from DimeAPI.views import LoginUser, RegisterUser, ReadHistory, NewsLetterSubscribe, RegisterAffiliate, \
+    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, IndexPage
+
 admin.autodiscover()
 # admin.site.__class__ = AdminSiteOTPRequired
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
-    path(r'api/dime/index', DimeIndex.as_view(), name="dimeIndex"),
     path(r'api/dime/linechart/', DimeLineChart.as_view(), name="dimeLineChart"),
     path(r'api/dime/piechart/', DimePieChart.as_view(), name="dimePieChart"),
     path(r'api/dime/tablechart/', DimeTableChart.as_view(), name="dimeTableChart"),
-    path(r'api/dime/rebalancedatesandvalues/', DimeRebalanceDateValue.as_view(), name="dimeRebalanceDateValue"),
 
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
 
@@ -42,7 +40,7 @@ urlpatterns = [
     path(r'api/affiliate/register/', RegisterAffiliate.as_view({"post": "create"}), name="registerAffiliate"),
     path(r'account/login/', LoginUser.as_view(), name="loginUser"),
     path(r'api/register/verify/<slug:Authorization_Code>', VerifyRegister.as_view(), name="verifyRegisterUser"),
-    # path(r'', IndexPage.as_view(), name="indexPage"),
+    path(r'', IndexPage.as_view(), name="indexPage"),
     # path(r'^auth/status/(?P<User_Id>([0-9]+))$', UserLoginStatus.as_view(), name="userLoginStatus"),
     # path(r'^SES/v1/auth/logout', LogoutUser.as_view(), name="logoutUser"),
     # path(r'^SES/v1/auth/forgotPassword/', ForgotPassword.as_view(), name="forgotPassword"),

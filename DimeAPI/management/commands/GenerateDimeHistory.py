@@ -3,7 +3,7 @@ from DimeAPI.models import Xchange, DimeFund, DimePeriod, DimeHistory
 from django.core.management.base import BaseCommand
 from DimeAPI.settings.base import XCHANGE
 from datetime import datetime, timedelta
-import calendar
+import cal
 from django.apps import apps
 
 
@@ -12,7 +12,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
-        # periods = Period.objects.all()[1:]
         periods = DimePeriod.objects.all().order_by('start_date')[1:]
         for period in periods:
             start_date = rebalance_date = period.start_date
