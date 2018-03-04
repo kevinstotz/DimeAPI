@@ -328,6 +328,21 @@ class Period(models.Model):
         ordering = ('id',)
 
 
+class DimePeriod(models.Model):
+    id = models.AutoField(primary_key=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    num_of_coins = models.IntegerField(default=10)
+
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
 class Vendor(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50, default="")

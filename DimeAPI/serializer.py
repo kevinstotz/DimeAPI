@@ -34,7 +34,7 @@ class DimeHistorySerializer(ModelSerializer):
         return datetime.utcfromtimestamp(obj.time).strftime('%Y-%m-%d')
 
     def to_currency(self, obj):
-        return '{:.2f}'.format(obj.value*100.0)
+        return '{:.2f}'.format(obj.value * 100.0)
 
 
 class CurrencySerializer(ModelSerializer):

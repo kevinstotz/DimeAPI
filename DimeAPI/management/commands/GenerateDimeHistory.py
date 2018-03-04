@@ -24,7 +24,7 @@ class Command(BaseCommand):
             while start_date < end_date:
 
                 dimeindex = DimeMutualFund.objects.filter(rebalance_date=rebalance_date)
-                running_total = 0
+                running_total = 0.0
                 for coin in dimeindex:
                     try:
                         coin_class = apps.get_model(app_label='DimeCoins', model_name=coin.currency.symbol)
@@ -41,7 +41,7 @@ class Command(BaseCommand):
                         print(error)
                         return
 
-                    running_total = running_total + coin.amount * index.close
+                    running_total = running_total + float(coin.amount) * float(index.close)
 
 
                 try:

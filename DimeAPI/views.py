@@ -96,10 +96,10 @@ class DimeLineChart(generics.ListAPIView):
     serializer_class = DimeHistorySerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = DimeHistory.objects.all()
+    queryset = DimeHistory.objects.all().filter(xchange=XCHANGE['COIN_MARKET_CAP'])
     filter_backends = (DjangoFilterBackend,)
     ordering = ('name',)
-    filter_fields = ('xchange',)
+    filter_fields = ('xchange', )
 
 
 class DimeRebalanceDateValue(generics.ListAPIView):
