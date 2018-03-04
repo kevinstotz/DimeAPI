@@ -2,7 +2,7 @@ import time
 from datetime import datetime, timezone
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
-from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeMutualFund, NewsLetter, UserAgent, \
+from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeFund, NewsLetter, UserAgent, \
     Password, Currency, DimeHistory, Notification, ContactUsForm, Period, Xchange, Affiliate
 from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH, XCHANGE
 from DimeAPI.classes.UserUtil import get_authorization_code
@@ -18,7 +18,7 @@ class CustomUserSerializer(ModelSerializer):
 class DimeIndexSerializer(ModelSerializer):
 
     class Meta:
-        model = DimeMutualFund
+        model = DimeFund
         fields = ('id', 'currency',)
 
 
@@ -72,7 +72,7 @@ class DimePieChartSerializer(ModelSerializer):
     value = serializers.FloatField(source='percent_of_dime')
 
     class Meta:
-        model = DimeMutualFund
+        model = DimeFund
         fields = ('name', 'value',)
 
 
@@ -81,14 +81,14 @@ class DimeTableChartSerializer(ModelSerializer):
     value = serializers.FloatField(source='percent_of_dime')
 
     class Meta:
-        model = DimeMutualFund
+        model = DimeFund
         fields = ('rank', 'name', 'value', 'percent_of_dime', 'market_cap')
 
 
 class DimePeriodSerializer(ModelSerializer):
 
     class Meta:
-        model = DimeMutualFund
+        model = DimeFund
         fields = ('rebalance_price', 'rank', 'level', 'period', 'currency',
                   'market_cap', 'percent_of_dime', 'amount', 'rebalance_value', 'end_price', 'end_value',)
 

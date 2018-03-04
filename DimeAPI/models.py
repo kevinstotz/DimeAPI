@@ -4,7 +4,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from DimeAPI.settings.base import EMAIL_LENGTH, ADDRESS_LENGTH, FIRST_NAME_LENGTH, \
     LAST_NAME_LENGTH, AUTHORIZATION_CODE_LENGTH, EMAIL_TEMPLATE_DIR, CURRENCY_NAME_LENGTH, \
-    COIN_SYMBOL_LENGTH, COIN_NAME_LENGTH, COIN_FULL_NAME_LENGTH, ICON_NAME_LENGTH, PASSWORD_LENGTH, AUTH_USER_MODEL
+    COIN_SYMBOL_LENGTH, COIN_NAME_LENGTH, COIN_FULL_NAME_LENGTH, PASSWORD_LENGTH, AUTH_USER_MODEL
 from .managers import UserManager
 from DimeAPI.classes.UnixEpoch import UnixEpochDateTimeField
 import datetime
@@ -360,11 +360,11 @@ class Vendor(models.Model):
         ordering = ('id', 'name',)
 
 
-class DimeMutualFund(models.Model):
+class DimeFund(models.Model):
     id = models.AutoField(primary_key=True)
     currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
     rebalance_date = models.DateField(default=datetime.date.today)
-    period = models.ForeignKey(Period, on_delete=models.SET_DEFAULT, default=1)
+    period = models.ForeignKey(DimePeriod, on_delete=models.SET_DEFAULT, default=1)
     rank = models.IntegerField(default=0)
     level = models.FloatField(default=0.0)
     rebalance_price = models.FloatField(default=0.0)

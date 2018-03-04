@@ -1,15 +1,12 @@
-
-from DimeAPI.serializer import DimePeriodSerializer
-from DimeAPI.models import Currency, Period, DimeMutualFund, Xchange
+from DimeAPI.models import  Xchange
 from DimeAPI.settings.base import XCHANGE
-from django.core.exceptions import ObjectDoesNotExist
 import logging
-from datetime import datetime
 import requests
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s (%(threadName)-2s) %(message)s',
                     )
+
 
 class DimeUtil:
 
@@ -21,4 +18,3 @@ class DimeUtil:
         url = '{0}/ticker/?limit={1}'.format(self.marketCapXchange.api_url, count)
         top_currencies = requests.get(url)
         return top_currencies.json()
-

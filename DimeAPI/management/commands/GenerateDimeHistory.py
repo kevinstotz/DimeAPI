@@ -1,5 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from DimeAPI.models import Xchange, DimeMutualFund, Period, DimeHistory
+from DimeAPI.models import Xchange, DimeFund, DimePeriod, DimeHistory
 from django.core.management.base import BaseCommand
 from DimeAPI.settings.base import XCHANGE
 from datetime import datetime, timedelta
@@ -12,18 +12,17 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
-        periods = Period.objects.all()[1:]
-
+        # periods = Period.objects.all()[1:]
+        periods = DimePeriod.objects.all().order_by('start_date')[1:]
         for period in periods:
-            start_date = datetime.strptime(str(period.start_year) + '-' + str(period.start_month) + '-' + str(period.start_day), '%Y-%m-%d').date()
-            rebalance_date = start_date
+            start_date = rebalance_date = period.start_date
+            end_date = period.end_date
 
-            end_date = datetime.strptime(str(period.end_year) + '-' + str(period.end_month) + '-' + str(period.end_day), '%Y-%m-%d').date()
             if end_date > datetime.utcnow().date():
                 end_date = datetime.utcnow().date()
             while start_date < end_date:
 
-                dimeindex = DimeMutualFund.objects.filter(rebalance_date=rebalance_date)
+                dimeindex = DimeFund.objects.filter(rebalance_date=rebalance_date)
                 running_total = 0.0
                 for coin in dimeindex:
                     try:

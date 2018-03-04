@@ -6,7 +6,7 @@ from oauth2_provider.views.generic import ProtectedResourceView
 from datetime import datetime, timedelta
 from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
     EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE
-from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeMutualFund, \
+from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeFund, \
     NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, Xchange, Period, DimeHistory, \
     Notification, ContactUsForm, Affiliate
 
@@ -113,27 +113,27 @@ class DimeRebalanceDateValue(generics.ListAPIView):
 
 
 class DimePieChart(generics.ListAPIView):
-    model = DimeMutualFund
+    model = DimeFund
     serializer_class = DimePieChartSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = DimeMutualFund.objects.filter(rebalance_date='2017-12-23')
+    queryset = DimeFund.objects.filter(rebalance_date='2017-12-23')
 
 
 class DimeTableChart(generics.ListAPIView):
-    model = DimeMutualFund
+    model = DimeFund
     serializer_class = DimeTableChartSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = DimeMutualFund.objects.filter(rebalance_date='2017-12-23')
+    queryset = DimeFund.objects.filter(rebalance_date='2017-12-23')
 
 
 class DimeIndex(generics.ListAPIView):
-    model = DimeMutualFund
+    model = DimeFund
     serializer_class = DimeIndexSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = DimeMutualFund.objects.all()
+    queryset = DimeFund.objects.all()
 
     def get(self, request, *args, **kwargs):
 
@@ -149,7 +149,7 @@ class DimeIndex(generics.ListAPIView):
                 end_date = datetime.utcnow().date()
             while start_date < end_date:
 
-                dimeindex = DimeMutualFund.objects.filter(rebalance_date=rebalance_date)
+                dimeindex = DimeFund.objects.filter(rebalance_date=rebalance_date)
                 running_total = 0
                 for coin in dimeindex:
                     coin_class = apps.get_model(app_label='DimeCoins', model_name=coin.currency.symbol)
@@ -197,7 +197,7 @@ class NewsLetterSubscribe(generics.GenericAPIView):
             news_letter.is_valid(raise_exception=True)
             news_letter.save()
         except Exception as error:
-            result = 'Failed to parse JSON:{0}'.format(request) + error
+            result = 'Failed to parse JSON:{0}:{1}'.format(request, error)
             logger.error(result)
             return Response(ReturnResponse.Response(1, __name__, "Subscription Failed", result).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)
