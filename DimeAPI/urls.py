@@ -19,7 +19,7 @@ from django.conf.urls  import url
 from django.conf.urls import include
 from two_factor.admin import AdminSiteOTPRequired
 from DimeAPI.views import LoginUser, RegisterUser, ReadHistory, NewsLetterSubscribe, RegisterAffiliate, \
-    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, IndexPage
+    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, IndexPage, ForgotPassword
 
 admin.autodiscover()
 # admin.site.__class__ = AdminSiteOTPRequired
@@ -33,7 +33,7 @@ urlpatterns = [
 
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
 
-    path(r'api/newsletter', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
+    path(r'api/newsletter/', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
     path(r'api/contactus/', ContactUs.as_view(), name="contactus"),
 
     path(r'api/register/', RegisterUser.as_view({"post": "create"}), name="registerUser"),
@@ -43,7 +43,7 @@ urlpatterns = [
     path(r'', IndexPage.as_view(), name="indexPage"),
     # path(r'^auth/status/(?P<User_Id>([0-9]+))$', UserLoginStatus.as_view(), name="userLoginStatus"),
     # path(r'^SES/v1/auth/logout', LogoutUser.as_view(), name="logoutUser"),
-    # path(r'^SES/v1/auth/forgotPassword/', ForgotPassword.as_view(), name="forgotPassword"),
+    path(r'api/forgot-password/', ForgotPassword.as_view(), name="forgotPassword"),
     # path(r'^SES/v1/auth/resetPassword/(?P<Authorization_Code>([a-z]+))$', ResetPassword.as_view(),
         # name="resetPassword"),
     # path(r'^SES/v1/key/(?P<ApiKey>([0-9]+))/$', ReadTemperature.as_view(), name="readTemperature"),

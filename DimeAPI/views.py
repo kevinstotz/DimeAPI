@@ -248,6 +248,29 @@ class RegisterAffiliate(CreateModelMixin, viewsets.GenericViewSet):
         print(request.data)
 
 
+class ForgotPassword(generics.ListAPIView):
+    model = CustomUser
+    permission_classes = (AllowAny,)
+    serializer_class = CustomUserSerializer
+    queryset = CustomUser.objects.all()
+
+    def post(self, request):
+
+        if not request.data['email']:
+            return Response(ReturnResponse.Response(1, __name__, 'success', "err").return_json(),
+                            status=status.HTTP_400_BAD_REQUEST)
+        if len(request.data['email']) <= 5:
+            return Response(ReturnResponse.Response(1, __name__, 'success', "err").return_json(), status=status.HTTP_400_BAD_REQUEST)
+        user = UserUtil.get_user_from_email(request.data['email'])
+        if user == None:
+            return Response(ReturnResponse.Response(1, __name__, 'success', "err").return_json(), status=status.HTTP_400_BAD_REQUEST)
+        my_email = MyEmail.MyEmail('Send Forgot Password')
+        result = my_email.send_forgot_password_email(user)
+        logger.error(result)
+        return Response(ReturnResponse.Response(1, __name__, 'success', "Message sent!".format(request.data['email'])).return_json(),
+                        status=status.HTTP_200_OK)
+
+
 class VerifyRegister(generics.ListAPIView):
     model = Register
     permission_classes = (IsAuthenticatedOrCreate,)

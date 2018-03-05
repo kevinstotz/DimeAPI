@@ -41,7 +41,7 @@ ALLOWED_HOSTS = [ENGINE_HOSTNAME]
 #     'DimeCoins',
 INSTALLED_APPS = [
     'DimeAPI',
-    'DimeCoins',
+
     'reset_migrations',
     'corsheaders',
     'oauth2_provider',
@@ -319,7 +319,7 @@ EMAIL_HOST_PASSWORD = '4eaf0f51577f20'
 EMAIL_TIMEOUT = 10
 EMAIL_LENGTH = 100
 
-EMAIL_TEMPLATE_DIR = join(PROJECT_NAME, 'EmailTemplates')
+EMAIL_TEMPLATE_DIR = join(PROJECT_NAME, "EmailTemplates")
 EMAIL_FROM_DOMAIN = 'yogishouse.com'
 EMAIL_LOGIN_URL = WEBSITE_HOSTNAME_URL + '/auth/login'
 EMAIL_VERIFY_ACCOUNT_URL = WEBSITE_HOSTNAME_URL + '/register/verify/'

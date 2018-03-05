@@ -1,6 +1,6 @@
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist
-from datetime import timedelta
+from datetime import timedelta, datetime
 import time
 from DimeAPI.settings.base import \
     EMAIL_SERVER, \
@@ -63,7 +63,8 @@ class MyEmail:
     def load_template(self, template_filename):
 
         filename = join(EMAIL_TEMPLATE_DIR, template_filename)
-        with open(filename, "rt") as template:
+
+        with open(filename, "r", encoding="utf8") as template:
             self.body = template.read()
         if len(self.body) > 10:
             result = 'Read Email Template:{0}'.format(filename)
@@ -78,7 +79,7 @@ class MyEmail:
 
         try:
             email_template = EmailTemplate.objects.get(pk=EMAIL_TEMPLATE['CONTACTUS'])
-            result = 'Getting  CONTACTUS :{0} from DB:'.format(email_template.html_name)
+            result = 'Getting  CONTACTUS :{0} from DB:'.format(email_template.htmlFilename)
             logger.debug(result)
         except ObjectDoesNotExist:
             result = 'Failed getting CONTACTUS record #:{0} from DB:'.format(EMAIL_TEMPLATE['CONTACTUS'])
@@ -91,11 +92,11 @@ class MyEmail:
         notification.type = NotificationType(pk=NOTIFICATION_TYPE['EMAIL'])
 
         try:
-            self.load_template(email_template.html_name)
-            result = 'read email template file:{0}'.format(email_template.html_name)
+            self.load_template(email_template.htmlFilename.name)
+            result = 'read email template file:{0}'.format(email_template.htmlFilename)
             logger.debug(result)
         except Exception as error:
-            result = 'Failed reading Email template:{0}'.format(email_template.html_name)
+            result = 'Failed reading Email template:{0}'.format(email_template.htmlFilename)
             logger.critical(result)
             logger.critical(error)
             return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
@@ -115,7 +116,7 @@ class MyEmail:
             logger.debug(result)
         else:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['FAILED'])
-            result = 'Failed sending email:{0} to user ID:{1}'.format(email_template.html_name,
+            result = 'Failed sending email:{0} to user ID:{1}'.format(email_template.htmlFilename,
                                                                       contactus.validated_data['email'])
             logger.error(result)
             return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
@@ -128,7 +129,7 @@ class MyEmail:
 
         try:
             email_template = EmailTemplate.objects.get(pk=EMAIL_TEMPLATE['VERIFY'])
-            result = 'Getting EMAIL_TEMPLATE VERIFY :{0} from DB:'.format(email_template.html_name)
+            result = 'Getting EMAIL_TEMPLATE VERIFY :{0} from DB:'.format(email_template.htmlFilename)
             logger.debug(result)
         except ObjectDoesNotExist:
             result = 'Failed getting EMAIL_TEMPLATE record #:{0} from DB:'.format(EMAIL_TEMPLATE['VERIFY'])
@@ -141,11 +142,11 @@ class MyEmail:
         notification.type = NotificationType(pk=NOTIFICATION_TYPE['EMAIL'])
 
         try:
-            self.load_template(email_template.html_name)
-            result = 'read email template file:{0}'.format(email_template.html_name)
+            self.load_template(email_template.htmlFilename.name)
+            result = 'read email template file:{0}'.format(email_template.htmlFilename)
             logger.debug(result)
         except Exception as error:
-            result = 'Failed reading Email template:{0}'.format(email_template.html_name)
+            result = 'Failed reading Email template:{0}'.format(email_template.htmlFilename)
             logger.critical(result)
             logger.critical(error)
             return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
@@ -169,13 +170,14 @@ class MyEmail:
             logger.debug(result)
         else:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['FAILED'])
-            result = 'Failed sending email:{0} to user ID:{1}'.format(email_template.html_name,
+            result = 'Failed sending email:{0} to user ID:{1}'.format(email_template.htmlFilename,
                                                                       register_user)
             logger.error(result)
             return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
         notification.save()
         result = 'Verification email sent to:{}'.format(self.toEmail)
         return ReturnResponse.Response(0, __name__, 'success', result).return_json()
+
 
     def send_welcome_email(self, new_user, new_password):
 
@@ -191,7 +193,7 @@ class MyEmail:
 
         try:
             email_template = EmailTemplate.objects.get(pk=EMAIL_TEMPLATE['WELCOME'])
-            result = 'Loaded Email Template WELCOME:{0}'.format(email_template.html_name)
+            result = 'Loaded Email Template WELCOME:{0}'.format(email_template.htmlFilename)
             logger.debug(result)
         except ObjectDoesNotExist as error:
             result = 'Could not find Email Template:{0}'.format(error)
@@ -213,11 +215,11 @@ class MyEmail:
             return ReturnResponse.Response(1, __name__, 'Failed loading email type notification', result).return_json()
 
         try:
-            self.load_template(email_template.html_name)
-            result = 'read email template file:{0}'.format(email_template.html_name)
+            self.load_template(email_template.htmlFilenam.namee)
+            result = 'read email template file:{0}'.format(email_template.htmlFilename)
             logger.debug(result)
         except Exception as error:
-            result = 'Failed reading email template:{0}'.format(email_template.html_name)
+            result = 'Failed reading email template:{0}'.format(email_template.htmlFilename)
             logger.error(error)
             logger.error(result)
             return ReturnResponse.Response(1, __name__, 'Failed reading email template', result).return_json()
@@ -285,17 +287,15 @@ class MyEmail:
         notification.save()
         return ReturnResponse.Response(0, __name__, 'success', result).return_json()
 
+
     def send_forgot_password_email(self, user):
 
         try:
-            password_reset = PasswordReset.objects.get(user=user, status=PASSWORD_RESET_STATUS['ACTIVE'])
+            password_reset = PasswordReset.objects.get(user=user)
             result = 'Loaded password reset for user Id:{0}'.format(user.pk)
             logger.debug(result)
         except ObjectDoesNotExist as error:
-            result = 'Failed Loading password reset for user Id:{0}'.format(user.pk)
-            logger.critical(result)
-            logger.critical(error)
-            return ReturnResponse.Response(1, __name__, 'Failed Loading password reset', result).return_json()
+            password_reset = PasswordReset(user=user, status=PasswordResetStatus(PASSWORD_RESET_STATUS['ACTIVE']))
 
         password_reset.Clicked = time.time()
         password_reset.save()
@@ -303,37 +303,37 @@ class MyEmail:
         if password_reset.status == PASSWORD_RESET_STATUS['EXPIRED']:
             result = 'This Request has expired!  Click forgot password again.'
             logger.debug(result)
-            return ReturnResponse.Response(0, __name__, 'This Request has expired', result).return_json()
+            return 'This Request has expired'
 
-        if (password_reset.Clicked - password_reset.Inserted) > timedelta(1):
-            password_reset.Status_Id = PasswordResetStatus(pk=PASSWORD_RESET_STATUS['EXPIRED'])
+        if  (password_reset.inserted + timedelta(minutes=60)) <= datetime.now():
+            password_reset.status = PasswordResetStatus(pk=PASSWORD_RESET_STATUS['EXPIRED'])
             password_reset.save()
             result = 'This Request has expired!  Click forgot password again.'
             logger.debug(result)
-            return ReturnResponse.Response(0, __name__, 'success', result).return_json()
+            return result
 
-        if password_reset.Status_Id == PASSWORD_RESET_STATUS['CLICKED']:
+        if password_reset.status == PASSWORD_RESET_STATUS['CLICKED']:
             result = 'This Request has already been used!  Click forgot password again.'
             logger.debug(result)
-            return ReturnResponse.Response(0, __name__, 'This Request has already been used', result).return_json()
+            return 'This Request has already been used.'
 
-        if password_reset.Status_Id == PASSWORD_RESET_STATUS['ACTIVE']:
-            password_reset.Status_Id = PasswordResetStatus(pk=PASSWORD_RESET_STATUS['CLICKED'])
+        if password_reset.status == PASSWORD_RESET_STATUS['ACTIVE']:
+            password_reset.status = PasswordResetStatus(pk=PASSWORD_RESET_STATUS['CLICKED'])
             password_reset.save()
 
         try:
             email_template = EmailTemplate.objects.get(pk=EMAIL_TEMPLATE['FORGOT'])
-            result = 'Loaded email template FORGOT:{0}'.format(email_template.HTML_Filename.name)
+            result = 'Loaded email template FORGOT:{0}'.format(email_template.htmlFilename.name)
             logger.debug(result)
         except ObjectDoesNotExist as error:
             result = 'Failed Loading email template FORGOT ID{0}:'.format(EMAIL_TEMPLATE['FORGOT'])
             logger.critical(result)
             logger.critical(error)
-            return ReturnResponse.Response(1, __name__, 'Failed Loading email template FORGOT', result).return_json()
+            return 'Failed Loading email template FORGOT'
 
         notification = Notification()
-        notification.toUser = user
-        notification.message = email_template
+        notification.toUser = user.pk
+        notification.message = email_template.pk
 
         try:
             notification.type = NotificationType.objects.get(pk=NOTIFICATION_TYPE['EMAIL'])
@@ -343,25 +343,25 @@ class MyEmail:
             result = 'Failed Loading Notification type EMAIL:{0}'.format(NOTIFICATION_TYPE['EMAIL'])
             logger.critical(result)
             logger.critical(error)
-            return ReturnResponse.Response(1, __name__, 'Failed Loading Notification type EMAIL', result).return_json()
+            return 'Failed Loading Notification type EMAIL'
 
         try:
-            self.load_template(email_template.html_name)
-            result = 'read email template file:{0}'.format(email_template.html_name)
+            self.load_template(email_template.htmlFilename.name)
+            result = 'read email template file:{0}'.format(email_template.htmlFilename)
             logger.debug(result)
         except Exception as error:
-            result = 'Failed reading email template:{0}'.format(email_template.html_name)
+            result = 'Failed reading email template:{0}'.format(email_template.htmlFilename)
             logger.critical(result)
             logger.critical(error)
-            return ReturnResponse.Response(1, __name__, 'Failed reading email template', result).return_json()
+            return 'Failed reading email template'
 
-        self.subject = email_template.Subject
-        self.fromEmail = email_template.From + '@' + EMAIL_FROM_DOMAIN
-        self.toEmail = user.Email
+        self.subject = email_template.subject
+        self.fromEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
+        self.toEmail = user.email
 
         try:
-            name = Name.objects.get(User_Id=user, Type_Id=NameType.objects.get(pk=NAME_TYPE['FIRST']))
-            first_name = name.Name
+            name = Name.objects.get(user=user, type=NameType.objects.get(pk=NAME_TYPE['FIRST']))
+            first_name = name.name
             result = 'Read User from DB:{0}'.format(first_name)
             logger.debug(result)
         except ObjectDoesNotExist as error:
@@ -381,10 +381,10 @@ class MyEmail:
             result = 'Failed sending Forgot Password Email to:{0}'.format(user.email)
             logger.error(result)
         notification.save()
-        return ReturnResponse.Response(0, __name__, 'Password reset instruction sent', result).return_json()
+        return 'Password reset instruction sent'
+
 
     def send_reset_password_email(self, authorization_code):
-
         try:
             password_reset = PasswordReset.objects.get(authorizationCode=authorization_code)
             result = 'Read authorization code from DB:{0}'.format(authorization_code)
@@ -401,18 +401,18 @@ class MyEmail:
             logger.info(result)
             return ReturnResponse.Response(0, __name__, 'Invalid Code.  Request password again', result).return_json()
 
-        if password_reset.Status_Id.pk == PASSWORD_RESET_STATUS['FINISHED']:
+        if password_reset.Status.pk == PASSWORD_RESET_STATUS['FINISHED']:
             result = 'Already Used this request.  Request password again. ID:{0}'.format(password_reset.status.pk)
             logger.info(result)
             return ReturnResponse.Response(0, __name__, 'Request Used.  Request password again', result).return_json()
 
         password_reset.Clicked = time.time()
-        password_reset.Status_Id = PasswordResetStatus.objects.get(pk=PASSWORD_RESET_STATUS['FINISHED'])
+        password_reset.Status = PasswordResetStatus.objects.get(pk=PASSWORD_RESET_STATUS['FINISHED'])
         password_reset.save()
 
         try:
             email_template = EmailTemplate.objects.get(pk=EMAIL_TEMPLATE['RESET'])
-            result = 'retrieve email template file:{0}'.format(email_template.html_name)
+            result = 'retrieve email template file:{0}'.format(email_template.htmlFilename)
             logger.debug(result)
         except ObjectDoesNotExist as error:
             result = 'Failed retrieving email RESET template:{0}'.format(EMAIL_TEMPLATE['RESET'])
@@ -426,11 +426,11 @@ class MyEmail:
         notification.type = NotificationType.objects.get(pk=NOTIFICATION_TYPE['EMAIL'])
 
         try:
-            self.load_template(email_template.html_name)
-            result = 'read email template file:{0}'.format(email_template.html_name)
+            self.load_template(email_template.htmlFilename.name)
+            result = 'read email template file:{0}'.format(email_template.htmlFilename.name)
             logger.debug(result)
         except Exception as error:
-            result = 'Failed reading email template:{0}'.format(email_template.html_name)
+            result = 'Failed reading email template:{0}'.format(email_template.htmlFilename)
             logger.critical(error)
             logger.critical(result)
             return ReturnResponse.Response(1, __name__, 'Failed reading email template', result).return_json()

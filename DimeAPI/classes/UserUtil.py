@@ -28,6 +28,15 @@ class UserUtils:
         return self.num_records
 
 
+def get_user_from_email(email):
+    try:
+        customUser = CustomUser.objects.get(email=email)
+        return customUser
+    except ObjectDoesNotExist as error:
+        print(error)
+    return None
+
+
 def get_authorization_code():
     letters = string.ascii_lowercase
     authorization_code = ''.join(choice(letters) for i in range(AUTHORIZATION_CODE_LENGTH))
