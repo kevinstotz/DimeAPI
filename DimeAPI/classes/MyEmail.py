@@ -291,35 +291,18 @@ class MyEmail:
     def send_forgot_password_email(self, user):
 
         try:
-            password_reset = PasswordReset.objects.get(user=user)
+            password_reset = PasswordReset.objects.filter(user=user)
+            password_reset.delete()
             result = 'Loaded password reset for user Id:{0}'.format(user.pk)
             logger.debug(result)
         except ObjectDoesNotExist as error:
-            password_reset = PasswordReset(user=user, status=PasswordResetStatus(PASSWORD_RESET_STATUS['ACTIVE']))
+            pass
 
-        password_reset.Clicked = time.time()
+        password_reset = PasswordReset(user=user,
+                                       authorization_code=UserUtil.get_authorization_code(),
+                                       status=PasswordResetStatus(PASSWORD_RESET_STATUS['ACTIVE'])
+                                       )
         password_reset.save()
-
-        if password_reset.status == PASSWORD_RESET_STATUS['EXPIRED']:
-            result = 'This Request has expired!  Click forgot password again.'
-            logger.debug(result)
-            return 'This Request has expired'
-
-        if  (password_reset.inserted + timedelta(minutes=60)) <= datetime.now():
-            password_reset.status = PasswordResetStatus(pk=PASSWORD_RESET_STATUS['EXPIRED'])
-            password_reset.save()
-            result = 'This Request has expired!  Click forgot password again.'
-            logger.debug(result)
-            return result
-
-        if password_reset.status == PASSWORD_RESET_STATUS['CLICKED']:
-            result = 'This Request has already been used!  Click forgot password again.'
-            logger.debug(result)
-            return 'This Request has already been used.'
-
-        if password_reset.status == PASSWORD_RESET_STATUS['ACTIVE']:
-            password_reset.status = PasswordResetStatus(pk=PASSWORD_RESET_STATUS['CLICKED'])
-            password_reset.save()
 
         try:
             email_template = EmailTemplate.objects.get(pk=EMAIL_TEMPLATE['FORGOT'])
@@ -370,7 +353,7 @@ class MyEmail:
             logger.critical(result)
             logger.critical(error)
         self.subject = self.subject.replace('NAME', first_name)
-        self.replace_string_in_template('PASSWORD_RESET_URL', PASSWORD_RESET_URL + password_reset.authorizationCode)
+        self.replace_string_in_template('PASSWORD_RESET_URL', PASSWORD_RESET_URL + password_reset.authorization_code)
 
         if self.send() == 1:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['SENT'])
@@ -384,30 +367,51 @@ class MyEmail:
         return 'Password reset instruction sent'
 
 
-    def send_reset_password_email(self, authorization_code):
+    def send_reset_password_email(self, request):
+
         try:
-            password_reset = PasswordReset.objects.get(authorizationCode=authorization_code)
-            result = 'Read authorization code from DB:{0}'.format(authorization_code)
+            password_reset = PasswordReset.objects.get(authorization_code=request['authorizationCode'])
+            result = 'Read authorization code from DB:{0}'.format(request['authorizationCode'])
             logger.debug(result)
         except ObjectDoesNotExist as error:
-            result = 'Failed Finding Authorization Code in Password Reset:{0}'.format(authorization_code)
+            result = 'Failed Finding Password Reset Request'
             logger.info(result)
             logger.info(error)
-            return ReturnResponse.Response(0, __name__, 'Failed Finding Authorization Code', result).return_json()
+            return result
 
-        if authorization_code != password_reset.authorizationCode:
-            result = 'Codes do not match.  Request password again.:{0}<>{1}'.format(authorization_code,
-                                                                                    password_reset.authorizationCode)
+        if request['authorizationCode'] != password_reset.authorization_code:
+            result = 'Codes do not match.  Request password again.:{0}<>{1}'.format(request['authorizationCode'],
+                                                                                    password_reset.authorization_code)
             logger.info(result)
-            return ReturnResponse.Response(0, __name__, 'Invalid Code.  Request password again', result).return_json()
+            return result
 
-        if password_reset.Status.pk == PASSWORD_RESET_STATUS['FINISHED']:
+        if password_reset.status == PASSWORD_RESET_STATUS['EXPIRED']:
+            result = 'This Request has expired!  Click forgot password again.'
+            logger.debug(result)
+            return 'This Request has expired'
+
+        if  (password_reset.inserted + timedelta(minutes=120)) <= datetime.now():
+            password_reset.delete()
+            result = 'This Request has expired!  Click forgot password again.'
+            logger.debug(result)
+            return result
+
+        if password_reset.status == PASSWORD_RESET_STATUS['CLICKED']:
+            result = 'This Request has already been used!  Click forgot password again.'
+            logger.debug(result)
+            return 'This Request has already been used.'
+
+        if password_reset.status == PASSWORD_RESET_STATUS['ACTIVE']:
+            password_reset.status = PasswordResetStatus(pk=PASSWORD_RESET_STATUS['CLICKED'])
+            password_reset.save()
+
+        if password_reset.status.pk == PASSWORD_RESET_STATUS['FINISHED']:
             result = 'Already Used this request.  Request password again. ID:{0}'.format(password_reset.status.pk)
             logger.info(result)
-            return ReturnResponse.Response(0, __name__, 'Request Used.  Request password again', result).return_json()
+            return result
 
         password_reset.Clicked = time.time()
-        password_reset.Status = PasswordResetStatus.objects.get(pk=PASSWORD_RESET_STATUS['FINISHED'])
+        password_reset.status = PasswordResetStatus.objects.get(pk=PASSWORD_RESET_STATUS['FINISHED'])
         password_reset.save()
 
         try:
@@ -418,12 +422,11 @@ class MyEmail:
             result = 'Failed retrieving email RESET template:{0}'.format(EMAIL_TEMPLATE['RESET'])
             logger.critical(result)
             logger.critical(error)
-            return ReturnResponse.Response(1, __name__, 'Failed retrieving email RESET', result).return_json()
+            return result
 
-        notification = Notification()
-        notification.toUser = password_reset.user
-        notification.message = email_template
-        notification.type = NotificationType.objects.get(pk=NOTIFICATION_TYPE['EMAIL'])
+        notification = Notification(toUser = password_reset.user.pk,
+                                    message=email_template.pk,
+                                    type=NotificationType.objects.get(pk=NOTIFICATION_TYPE['EMAIL']))
 
         try:
             self.load_template(email_template.htmlFilename.name)
@@ -433,7 +436,7 @@ class MyEmail:
             result = 'Failed reading email template:{0}'.format(email_template.htmlFilename)
             logger.critical(error)
             logger.critical(result)
-            return ReturnResponse.Response(1, __name__, 'Failed reading email template', result).return_json()
+            return result
 
         self.subject = email_template.subject
         self.fromEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
@@ -446,13 +449,13 @@ class MyEmail:
             result = 'Failed reading user email address from User ID:{0}'.format(password_reset.user)
             logger.critical(result)
             logger.critical(error)
-            return ReturnResponse.Response(1, __name__, 'No email address found', result).return_json()
+            return result
 
         self.toEmail = user.email
 
         try:
             name = Name.objects.get(user=user.pk, type=NameType.objects.get(pk=NAME_TYPE['FIRST']))
-            first_name = name.Name
+            first_name = name.name
             result = 'Read user id and first name from password reset:{0}'.format(name.pk)
             logger.debug(result)
         except ObjectDoesNotExist as error:
@@ -461,11 +464,8 @@ class MyEmail:
             logger.error(result)
             logger.critical(error)
 
-        utils = UserUtil.Util()
-        new_password = utils.generate_password()
-        user.set_password(new_password)
+        user.set_password(request['password'])
         user.save()
-        self.replace_string_in_template('NEW_PASSWORD', str(new_password))
         self.subject = self.subject.replace('NAME', first_name)
         self.replace_string_in_template('EMAIL_LOGIN_URL', str(EMAIL_LOGIN_URL))
         if self.send() == 1:
@@ -477,7 +477,8 @@ class MyEmail:
             result = 'Failed sending Reset Password Email to:{0}'.format(user.email)
             logger.error(result)
         notification.save()
-        return ReturnResponse.Response(0, __name__, 'Reset Password Email Sent', result).return_json()
+        password_reset.delete()
+        return 'Reset Password Email Sent'
 
     def send(self):
         return send_mail(

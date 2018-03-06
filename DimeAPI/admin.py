@@ -1,5 +1,5 @@
 from django.contrib import admin
-from DimeAPI.models import CustomUser, Register, Password, UserAgent, DimeFund, DimePeriod, \
+from DimeAPI.models import CustomUser, Register, UserAgent, DimeFund, DimePeriod, \
     NewsLetter, XchangeCurrency, Xchange, Currency, \
     Notification, EmailTemplate, EmailAddress, Name, Network, PasswordReset, NameType, RegisterStatus, \
     NotificationStatus, EmailAddressStatus, NotificationType, PasswordResetStatus, UserStatus
@@ -23,7 +23,6 @@ admin.site.register(NewsLetter)
 admin.site.register(Notification)
 admin.site.register(NotificationStatus)
 admin.site.register(NotificationType)
-admin.site.register(Password)
 admin.site.register(PasswordReset)
 admin.site.register(PasswordResetStatus)
 admin.site.register(Register)

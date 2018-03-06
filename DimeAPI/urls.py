@@ -19,11 +19,10 @@ from django.conf.urls  import url
 from django.conf.urls import include
 from two_factor.admin import AdminSiteOTPRequired
 from DimeAPI.views import LoginUser, RegisterUser, ReadHistory, NewsLetterSubscribe, RegisterAffiliate, \
-    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, IndexPage, ForgotPassword
+    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, IndexPage, ForgotPassword, ResetPassword, LogoutUser
 
 admin.autodiscover()
 # admin.site.__class__ = AdminSiteOTPRequired
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
@@ -32,21 +31,19 @@ urlpatterns = [
     path(r'api/dime/tablechart/', DimeTableChart.as_view(), name="dimeTableChart"),
 
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
-
     path(r'api/newsletter/', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
     path(r'api/contactus/', ContactUs.as_view(), name="contactus"),
-
     path(r'api/register/', RegisterUser.as_view({"post": "create"}), name="registerUser"),
     path(r'api/affiliate/register/', RegisterAffiliate.as_view({"post": "create"}), name="registerAffiliate"),
     path(r'account/login/', LoginUser.as_view(), name="loginUser"),
     path(r'api/register/verify/<slug:Authorization_Code>', VerifyRegister.as_view(), name="verifyRegisterUser"),
-    path(r'', IndexPage.as_view(), name="indexPage"),
-    # path(r'^auth/status/(?P<User_Id>([0-9]+))$', UserLoginStatus.as_view(), name="userLoginStatus"),
-    # path(r'^SES/v1/auth/logout', LogoutUser.as_view(), name="logoutUser"),
+    path(r'account/logout', LogoutUser.as_view(), name="logoutUser"),
     path(r'api/forgot-password/', ForgotPassword.as_view(), name="forgotPassword"),
-    # path(r'^SES/v1/auth/resetPassword/(?P<Authorization_Code>([a-z]+))$', ResetPassword.as_view(),
-        # name="resetPassword"),
-    # path(r'^SES/v1/key/(?P<ApiKey>([0-9]+))/$', ReadTemperature.as_view(), name="readTemperature"),
-    # path(r'^SES/v1/user/(?P<User_Id>([0-9]+))$', UserInfo.as_view(), name="userInfo")
+    path(r'api/reset-password/', ResetPassword.as_view(), name="resetPassword"),
+    path(r'', IndexPage.as_view(), name="indexPage"),
+
+    # path(r'^auth/status/(?P<User_Id>([0-9]+))$', UserLoginStatus.as_view(), name="userLoginStatus"),
+    # path(r'^SES/v1/user/(?P<User_Id>([0-9]+))$', UserInfo.as_view(), name="userInfo")authorizationCode
 ]
-# path(r'^SES/v1/auth/login/', Login.as_view(), name="login"),
+
+

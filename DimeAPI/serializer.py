@@ -4,7 +4,7 @@ import calendar
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeFund, NewsLetter, UserAgent, \
-    Password, Currency, DimeHistory, Notification, ContactUsForm, DimePeriod, Xchange, Affiliate
+     Currency, DimeHistory, Notification, ContactUsForm, DimePeriod, Xchange, Affiliate
 from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH, XCHANGE
 from DimeAPI.classes.UserUtil import get_authorization_code
 from DimeAPI.classes.EmailUtil import EmailUtil
@@ -121,13 +121,6 @@ class RegisterStatusSerializer(ModelSerializer):
     class Meta:
         model = RegisterStatus
         fields = ('id', 'status',)
-
-
-class PasswordSerializer(ModelSerializer):
-
-    class Meta:
-        model = Password
-        fields = ('id', 'password',)
 
 
 class UserAgentSerializer(ModelSerializer):

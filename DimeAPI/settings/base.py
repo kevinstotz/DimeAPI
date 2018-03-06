@@ -309,7 +309,7 @@ EMAIL_SERVER = {
     'PASSWORD': '4eaf0f51577f20',
     'PORT': 2525
 }
-PASSWORD_LENGTH = 20
+PASSWORD_LENGTH = 64
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp.mailtrap.io'
@@ -324,8 +324,8 @@ EMAIL_FROM_DOMAIN = 'yogishouse.com'
 EMAIL_LOGIN_URL = WEBSITE_HOSTNAME_URL + '/auth/login'
 EMAIL_VERIFY_ACCOUNT_URL = WEBSITE_HOSTNAME_URL + '/register/verify/'
 EMAIL_VERIFY_TRACK_URL = WEBSITE_HOSTNAME_URL + '/api/statistics/track.png?auth='
-FORGOT_PASSWORD_URL = WEBSITE_HOSTNAME_URL + '/account/forgotPassword/'
-PASSWORD_RESET_URL = WEBSITE_HOSTNAME_URL + '/account/resetPassword/'
+FORGOT_PASSWORD_URL = WEBSITE_HOSTNAME_URL + '/forgotpassword/'
+PASSWORD_RESET_URL = WEBSITE_HOSTNAME_URL + '/resetpassword/'
 AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS = 60 * 60 * 24  # 1 day
 #  User Status
 USER_STATUS = {

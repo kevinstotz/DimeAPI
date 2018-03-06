@@ -136,7 +136,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 class PasswordReset(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(AUTH_USER_MODEL, default=1, on_delete=models.CASCADE)
-    authorizationCode = models.CharField(max_length=AUTHORIZATION_CODE_LENGTH,
+    authorization_code = models.CharField(max_length=AUTHORIZATION_CODE_LENGTH,
                                          blank=False,
                                          verbose_name="Password Reset Code")
     status = models.ForeignKey(PasswordResetStatus, on_delete=models.SET_DEFAULT, default=1)
@@ -399,17 +399,6 @@ class UserAgent(models.Model):
 
     class Meta:
         ordering = ('os',)
-
-
-class Password(models.Model):
-    id = models.AutoField(primary_key=True)
-    password = models.CharField(max_length=PASSWORD_LENGTH, verbose_name="Password")
-
-    def __str__(self):
-        return '%s' % self.id
-
-    class Meta:
-        ordering = ('id',)
 
 
 class Affiliate(models.Model):

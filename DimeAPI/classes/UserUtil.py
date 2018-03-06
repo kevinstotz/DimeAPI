@@ -1,5 +1,4 @@
 from django.core.exceptions import ObjectDoesNotExist
-
 from DimeAPI.models import CustomUser
 from DimeAPI.settings.base import AUTHORIZATION_CODE_LENGTH, PASSWORD_LENGTH
 from random import randint, choice

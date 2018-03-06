@@ -3,9 +3,8 @@ from DimeAPI.models import Xchange, DimeFund, DimePeriod, DimeHistory
 from django.core.management.base import BaseCommand
 from DimeAPI.settings.base import XCHANGE
 from datetime import datetime, timedelta
-import cal
+import calendar
 from django.apps import apps
-
 
 class Command(BaseCommand):
 

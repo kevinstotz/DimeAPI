@@ -271,6 +271,34 @@ class ForgotPassword(generics.ListAPIView):
                         status=status.HTTP_200_OK)
 
 
+class ResetPassword(generics.ListAPIView):
+    model = CustomUser
+    permission_classes = (AllowAny,)
+    queryset = CustomUser.objects.all()
+
+    def post(self, request):
+        if not 'password' in request.data:
+            return Response(ReturnResponse.Response(1, __name__, 'failed', "Password required").return_json(),
+                            status=status.HTTP_400_BAD_REQUEST)
+        if not 'passwordConfirm' in request.data:
+            return Response(ReturnResponse.Response(1, __name__, 'failed', "Password Confirm required").return_json(),
+                            status=status.HTTP_401_UNAUTHORIZED)
+        if not 'authorizationCode' in request.data:
+            return Response(ReturnResponse.Response(1, __name__, 'failed', "autherizationCode required").return_json(),
+                            status=status.HTTP_403_FORBIDDEN)
+        if request.data['password'] != request.data['passwordConfirm']:
+            return Response(ReturnResponse.Response(1, __name__, 'failed', "passwords do not match").return_json(),
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        my_email = MyEmail.MyEmail('Send Forgot Password')
+        result = my_email.send_reset_password_email(request.data)
+        return Response(ReturnResponse.Response(1, __name__, 'success', result).return_json(), status=status.HTTP_200_OK)
+
+
+class LogoutUser(generics.ListAPIView):
+    model = Register
+
+
+
 class VerifyRegister(generics.ListAPIView):
     model = Register
     permission_classes = (IsAuthenticatedOrCreate,)
