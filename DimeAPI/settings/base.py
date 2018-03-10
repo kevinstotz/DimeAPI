@@ -199,16 +199,13 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
-    'content-type',
+    'Content-Type',
     'Access-Control-Allow-Origin',
-    'accept',
-    'origin',
-    'accept-encoding',
-    'csrftoken',
+    'Accept',
+    'Origin',
+    'Accept-Encoding',
     'Redirect',
-    'authorization',
-    'X-CSRFToken',
-    'X-CSRF-TOKEN'
+    'Authorization'
 )
 
 CORS_ALLOW_CREDENTIALS = True
@@ -384,6 +381,10 @@ PASSWORD_STATUS = {
     'SUCCESS': 5
 }
 
+EMAIL_ADDRESS_TYPE = {
+    'PRIMARY': 1,
+    'SECONDARY': 2
+}
 #  Password Reset Status
 PASSWORD_RESET_STATUS = {
     'ACTIVE': 1,
@@ -391,7 +392,13 @@ PASSWORD_RESET_STATUS = {
     'CLICKED': 3,
     'FINISHED': 4
 }
-
+#  Phone number Type
+PHONE_NUMBER_TYPE = {
+    'MOBILE': 1,
+    'HOME': 2,
+    'WORK': 3,
+    'AUTO': 4
+}
 #  Notification Status
 NOTIFICATION_STATUS = {
     'READY': 1,

@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import uuid
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -8,6 +9,73 @@ from DimeAPI.settings.base import EMAIL_LENGTH, ADDRESS_LENGTH, FIRST_NAME_LENGT
 from .managers import UserManager
 from DimeAPI.classes.UnixEpoch import UnixEpochDateTimeField
 import datetime
+
+
+class UserProfile(models.Model):
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    about = models.TextField(null=True, blank=True)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.pk
+
+    class Meta:
+        ordering = ('id',)
+
+
+class ZipCode(models.Model):
+    id = models.AutoField(primary_key=True)
+    zipcode = models.CharField(max_length=5, default="00000", blank=False)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.zipcode
+
+    class Meta:
+        ordering = ('zipcode',)
+
+
+class Country(models.Model):
+    id = models.AutoField(primary_key=True)
+    sort_name = models.CharField(max_length=3, verbose_name="2 letter name", blank=False, default="XX")
+    name = models.CharField(max_length=30, verbose_name="City Name", blank=False, default="XXX")
+    phone_code = models.IntegerField(default=0, blank=False)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.sort_name
+
+    class Meta:
+        ordering = ('sort_name',)
+
+
+class State(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=40, verbose_name="State Name", blank=False, default="XX")
+    code = models.CharField(max_length=2, verbose_name="State Code", blank=False, default="XX")
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, default=1)
+    zip_codes = models.ManyToManyField(ZipCode)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.name
+
+    class Meta:
+        ordering = ('name',)
+
+
+class City(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=30, verbose_name="City Name", blank=False)
+    state = models.ForeignKey(State, on_delete=models.CASCADE, default=1)
+    zip_codes = models.ManyToManyField(ZipCode)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.name
+
+    class Meta:
+        ordering = ('name',)
 
 
 class UserStatus(models.Model):
@@ -82,6 +150,46 @@ class EmailAddressStatus(models.Model):
         ordering = ('id',)
 
 
+class EmailAddressType(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.CharField(max_length=20, verbose_name="Type of Email Address", blank=False, default="1")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.type
+
+    class Meta:
+        ordering = ('id',)
+
+
+class PhoneNumberType(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.CharField(max_length=20, verbose_name="Type of Phone Number", blank=False, default="1")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.type
+
+    class Meta:
+        ordering = ('id',)
+
+
+class PhoneNumber(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.PROTECT, verbose_name="Phone Numbers", default=1,
+                                     related_name='phoneNumbers')
+    phone_number = models.CharField(max_length=16, verbose_name="Phone Number")
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, default=1)
+    type = models.ForeignKey(PhoneNumberType, on_delete=models.CASCADE, default=1)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.phone_number
+
+    class Meta:
+        ordering = ('id', 'phone_number', 'country',)
+
+
 class NameType(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=FIRST_NAME_LENGTH, verbose_name="Type of Name")
@@ -94,8 +202,76 @@ class NameType(models.Model):
         ordering = ('id',)
 
 
+class DocumentStatus(models.Model):
+    id = models.AutoField(primary_key=True)
+    status = models.CharField(max_length=20, verbose_name="Status of Document")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.status
+
+    class Meta:
+        ordering = ('id',)
+
+
+class DocumentType(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.CharField(max_length=20, verbose_name="Type of Document")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.type
+
+    class Meta:
+        ordering = ('type',)
+
+class FileType(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.CharField(max_length=20, verbose_name="Type of Document")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.type
+
+    class Meta:
+        ordering = ('type',)
+
+
+class MailServer(models.Model):
+    vendor = models.CharField(max_length=255,blank=False,verbose_name="vendor name",default="No Name")
+    username = models.CharField(max_length=EMAIL_LENGTH,blank=False,verbose_name="username",default="No Name")
+    password = models.CharField(max_length=PASSWORD_LENGTH,blank=False,verbose_name="password",default="No Name")
+    server = models.CharField(max_length=255,blank=False,verbose_name="server name",default="No Name")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.vendor
+
+    class Meta:
+        ordering = ('vendor',)
+
+
+class Document(models.Model):
+    name = models.CharField(max_length=255,blank=False,verbose_name="Filename of document",default="No Name")
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, default=1)
+    type =  models.ForeignKey(DocumentType, on_delete=models.CASCADE, default=1)
+    file_type = models.ForeignKey(FileType, on_delete=models.CASCADE, default=1)
+    size = models.IntegerField(blank=False, default=0)
+    status = models.ForeignKey(DocumentStatus, on_delete=models.CASCADE, default=1)
+    inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
+    modified = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
+
+    def __str__(self):
+        return '%s' % self.type
+
+    class Meta:
+        ordering = ('id', 'type', 'user', 'status')
+
+
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(primary_key=False, default=uuid.uuid4, unique=True, editable=False)
+    user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, default=1, related_name="customUser")
     email = models.EmailField(max_length=EMAIL_LENGTH,
                               blank=False,
                               verbose_name="Login of user",
@@ -110,7 +286,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_logged_in = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=True)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
     objects = UserManager()
 
@@ -133,12 +308,33 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return "first"
 
 
+class Address(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.PROTECT, verbose_name="Addresses", default=1,
+                                     related_name='addresses')
+    address1 = models.CharField(max_length=255, verbose_name="Address 1", default="")
+    address2 = models.CharField(max_length=255, verbose_name="Address 2", default="")
+    address3 = models.CharField(max_length=255, verbose_name="Address 3", default="")
+    unit = models.CharField(max_length=20, verbose_name="Unit")
+    zipcode = models.ForeignKey(ZipCode, on_delete=models.CASCADE, default=0, related_name='addresses')
+    city = models.ForeignKey(City, on_delete=models.CASCADE, default=0, related_name='addresses')
+    state = models.ForeignKey(State, on_delete=models.CASCADE, default=0, related_name='addresses')
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, default=0, related_name='addresses')
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
 class PasswordReset(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(AUTH_USER_MODEL, default=1, on_delete=models.CASCADE)
     authorization_code = models.CharField(max_length=AUTHORIZATION_CODE_LENGTH,
-                                         blank=False,
-                                         verbose_name="Password Reset Code")
+                                          blank=False,
+                                          verbose_name="Password Reset Code")
     status = models.ForeignKey(PasswordResetStatus, on_delete=models.SET_DEFAULT, default=1)
     clicked = models.DateTimeField(auto_now=True, verbose_name="Time clicked")
     inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
@@ -171,10 +367,11 @@ class Network(models.Model):
 
 class Name(models.Model):
     id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.PROTECT, verbose_name="Names", default=1,
+                                     related_name='names')
     name = models.CharField(max_length=FIRST_NAME_LENGTH, verbose_name="Name of User")
-    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name="Login", default=1)
     inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
-    type = models.ForeignKey(NameType, on_delete=models.PROTECT, default=1)
+    type = models.ForeignKey(NameType, on_delete=models.PROTECT, verbose_name="Name Type", default=1)
     objects = models.Manager()
 
     def __str__(self):
@@ -186,11 +383,16 @@ class Name(models.Model):
 
 class EmailAddress(models.Model):
     id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile,
+                                     on_delete=models.PROTECT,
+                                     verbose_name="User Profile",
+                                     default=1,
+                                     related_name='emailAddresses')
     email = models.EmailField(max_length=EMAIL_LENGTH,
                               blank=False,
                               default='noemail@noemail.com',
                               verbose_name="Email of Register")
-    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name="Login", default=1)
+    type = models.ForeignKey(EmailAddressType, on_delete=models.CASCADE)
     inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
     status = models.ForeignKey(EmailAddressStatus, on_delete=models.PROTECT, default=1)
     objects = models.Manager()
@@ -256,8 +458,8 @@ class Xchange(models.Model):
     category = models.CharField(max_length=50, default="")
     order = models.SmallIntegerField(default=1)
     api_url = models.CharField(max_length=200, default="")
-    api_key =  models.CharField(max_length=200, default="")
-    api_secret =  models.CharField(max_length=200, default="")
+    api_key = models.CharField(max_length=200, default="")
+    api_secret = models.CharField(max_length=200, default="")
     objects = models.Manager()
 
     def __str__(self):
@@ -330,7 +532,7 @@ class Vendor(models.Model):
     category = models.CharField(max_length=50, default="")
     url = models.CharField(max_length=200, default="")
     api_url = models.CharField(max_length=200, default="")
-    api_key =  models.CharField(max_length=100, default="")
+    api_key = models.CharField(max_length=100, default="")
     username = models.CharField(max_length=50, default="")
     password = models.CharField(max_length=50, default="")
 
@@ -375,7 +577,7 @@ class DimeHistory(models.Model):
     objects = models.Manager()
 
     def __str__(self):
-        return '%s: %s' % (self.id)
+        return '%s:' % self.id
 
     class Meta:
         unique_together = (("time", "xchange"),)
@@ -466,3 +668,4 @@ class ContactUsForm(models.Model):
 
     class Meta:
         ordering = ('id',)
+

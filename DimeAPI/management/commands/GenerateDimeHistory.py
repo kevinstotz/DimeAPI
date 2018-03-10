@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
-        periods = DimePeriod.objects.all().order_by('start_date')[1:]
+        periods = DimePeriod.objects.all().order_by('start_date')[15:]
         for period in periods:
             start_date = rebalance_date = period.start_date
             end_date = period.end_date

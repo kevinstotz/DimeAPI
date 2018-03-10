@@ -18,17 +18,18 @@ from django.urls import path
 from django.conf.urls  import url
 from django.conf.urls import include
 from two_factor.admin import AdminSiteOTPRequired
-from DimeAPI.views import LoginUser, RegisterUser, ReadHistory, NewsLetterSubscribe, RegisterAffiliate, \
-    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, IndexPage, ForgotPassword, ResetPassword, LogoutUser
+from DimeAPI.views import LoginUser, RegisterUser, ReadHistory, NewsLetterSubscribe, RegisterAffiliate, UserProfileView, CountryView, CityView, StateView, ZipCodeView, \
+    VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, IndexPage, ForgotPassword, ResetPassword, LogoutUser, GetUserId, DimeTableListChart, DocumentUpload
 
-admin.autodiscover()
-# admin.site.__class__ = AdminSiteOTPRequired
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path(r'api/dime/linechart/', DimeLineChart.as_view(), name="dimeLineChart"),
     path(r'api/dime/piechart/', DimePieChart.as_view(), name="dimePieChart"),
     path(r'api/dime/tablechart/', DimeTableChart.as_view(), name="dimeTableChart"),
+    path(r'api/dime/tablelistchart/', DimeTableListChart.as_view(), name="dimeTableListChart"),
 
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
     path(r'api/newsletter/', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
@@ -36,14 +37,22 @@ urlpatterns = [
     path(r'api/register/', RegisterUser.as_view({"post": "create"}), name="registerUser"),
     path(r'api/affiliate/register/', RegisterAffiliate.as_view({"post": "create"}), name="registerAffiliate"),
     path(r'account/login/', LoginUser.as_view(), name="loginUser"),
+    path(r'api/account/documentupload/', DocumentUpload.as_view({"post": "create"}), name="documentUpload"),
+    path(r'api/account/', GetUserId.as_view(), name="getUserId"),
     path(r'api/register/verify/<slug:Authorization_Code>', VerifyRegister.as_view(), name="verifyRegisterUser"),
     path(r'account/logout', LogoutUser.as_view(), name="logoutUser"),
     path(r'api/forgot-password/', ForgotPassword.as_view(), name="forgotPassword"),
     path(r'api/reset-password/', ResetPassword.as_view(), name="resetPassword"),
+    path(r'api/user/<slug:User_Id>/', UserProfileView.as_view(), name="userProfile"),
+
+    path(r'api/country/', CountryView.as_view(), name="countryList"),
+    path(r'api/city/<slug:State>/', CityView.as_view(), name="cityList"),
+    path(r'api/state/<slug:Country>/', StateView.as_view(), name="stateList"),
+    path(r'api/zipcode/<slug:City>/', ZipCodeView.as_view(), name="zipcodeList"),
+
     path(r'', IndexPage.as_view(), name="indexPage"),
-
     # path(r'^auth/status/(?P<User_Id>([0-9]+))$', UserLoginStatus.as_view(), name="userLoginStatus"),
-    # path(r'^SES/v1/user/(?P<User_Id>([0-9]+))$', UserInfo.as_view(), name="userInfo")authorizationCode
+
 ]
-
-
+# admin.site.__class__ = AdminSiteOTPRequired
+admin.autodiscover()

@@ -8,15 +8,16 @@ from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
     EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE
 from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeFund, \
     NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, DimeHistory, \
-    DimePeriod, ContactUsForm, Affiliate
+    DimePeriod, ContactUsForm, Affiliate, Country, State, City, ZipCode, UserProfile, Document
 
-from DimeAPI.serializer import RegisterSerializer, DimeTableChartSerializer, ContactUsFormSerializer, \
-    NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer, \
-    DimeRebalanceDateValueSerializer, RegisterAffiliateSerializer
+from DimeAPI.serializer import RegisterSerializer, DimeTableChartSerializer, ContactUsFormSerializer, GetUserIdSerializer, \
+    NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer, UserProfileSerializer, \
+    DimeRebalanceDateValueSerializer, RegisterAffiliateSerializer, CountrySerializer, DimeTableListChartSerializer, \
+    DocumentSerializer
 from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch
 from django_filters.rest_framework import DjangoFilterBackend
 
-from DimeAPI.permissions import IsAuthenticatedOrCreate
+from DimeAPI.permissions import IsAuthenticatedOrCreate, IsAuthenticated
 from DimeAPI.classes.UserUtil import get_client_ip
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -25,7 +26,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import JSONParser, FileUploadParser
 from rest_framework import viewsets
 import calendar
 
@@ -113,7 +114,7 @@ class DimePieChart(generics.ListAPIView):
     serializer_class = DimePieChartSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = DimeFund.objects.filter(rebalance_date='2017-12-23')
+    queryset = DimeFund.objects.filter(rebalance_date='2018-02-23')
 
 
 class DimeTableChart(generics.ListAPIView):
@@ -121,7 +122,59 @@ class DimeTableChart(generics.ListAPIView):
     serializer_class = DimeTableChartSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = DimeFund.objects.filter(rebalance_date='2017-12-23')
+    queryset = DimeFund.objects.filter(rebalance_date='2018-02-23')
+
+
+class DimeTableListChart(generics.ListAPIView):
+    model = DimeFund
+    serializer_class = DimeTableListChartSerializer
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+    queryset = DimeFund.objects.filter(rebalance_date='2018-02-23')
+
+
+class CountryView(generics.ListAPIView):
+    model = Country
+    serializer_class = CountrySerializer
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+    queryset = Country.objects.all().order_by('name')
+
+
+class CityView(generics.ListAPIView):
+    model = City
+    serializer_class = CountrySerializer
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+    queryset = City.objects.all().order_by('name')
+
+    def get_queryset(self):
+        state = self.kwargs['State']
+        return City.objects.filter(state__pk=state)
+
+
+class StateView(generics.ListAPIView):
+    model = State
+    serializer_class = CountrySerializer
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+    queryset = State.objects.all().order_by('name')
+
+    def get_queryset(self):
+        country = self.kwargs['Country']
+        return State.objects.filter(country__pk=country)
+
+
+class ZipCodeView(generics.ListAPIView):
+    model = ZipCode
+    serializer_class = CountrySerializer
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+    queryset = ZipCode.objects.all().order_by('zip_code')
+
+    def get_queryset(self):
+        city = self.kwargs['City']
+        return ZipCode.objects.filter(city__pk=city)
 
 
 class NewsLetterSubscribe(generics.GenericAPIView):
@@ -165,11 +218,51 @@ class ReadHistory(generics.ListAPIView):
         # queryset = DimeMutualFund.objects.all()
 
 
-class UserInfo(LoginRequiredMixin, generics.ListAPIView):
-    def get(self, request, *args, **kwargs):
-        login_url = '/login/'
-        print('user info')
-        redirect_field_name = 'redirect_to'
+class DocumentUpload(CreateModelMixin, viewsets.GenericViewSet):
+    queryset = Document.objects.all()
+    model = Document
+    parser_classes = (FileUploadParser)
+    serializer_class = DocumentSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        print( request.data['file'])
+        serializer = DocumentSerializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except serializers.ValidationError as error:
+            result = '{0}:'.format(error)
+            logger.error(result)
+            logger.error(serializer.errors)
+            return Response(ReturnResponse.Response(1, __name__, 'Exists', result).return_json(),
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Exception as error:
+            result = 'Failed parsing JSon:{0}'.format(request)
+            logger.error(result)
+            logger.error(error)
+            return Response(ReturnResponse.Response(1, __name__, 'Failed parsing Json', result).return_json(),
+                            status=status.HTTP_400_BAD_REQUEST)
+        result = "f"
+        logger.debug(result)
+        return Response(ReturnResponse.Response(1, __name__, 'success', result).return_json(),
+                        status=status.HTTP_201_CREATED)
+
+    def post(self, request):
+        print(request.data)
+        return Response(ReturnResponse.Response(1, __name__, 'success', "fsd").return_json(), status=status.HTTP_201_CREATED)
+
+# LoginRequiredMixin,
+class UserProfileView(generics.ListAPIView):
+    model = UserProfile
+    permission_classes = (AllowAny,)
+    serializer_class = UserProfileSerializer
+    lookup_url_kwarg = 'User_Id'
+    queryset = UserProfile.objects.all()
+
+    def get_queryset(self):
+        user_id = self.kwargs.get(self.lookup_url_kwarg)
+        return UserProfile.objects.filter(customUser__pk=user_id)
 
 
 class RegisterUser(CreateModelMixin, viewsets.GenericViewSet):
@@ -269,6 +362,31 @@ class ForgotPassword(generics.ListAPIView):
         logger.error(result)
         return Response(ReturnResponse.Response(1, __name__, 'success', "Message sent!".format(request.data['email'])).return_json(),
                         status=status.HTTP_200_OK)
+
+
+class GetUserId(generics.GenericAPIView):
+    permission_classes = (AllowAny, )
+    model = CustomUser
+    permission_classes = (IsAuthenticated,)
+    serializer_class = GetUserIdSerializer
+    parser_classes = (JSONParser,)
+    renderer_classes = (JSONRenderer,)
+    queryset = CustomUser.objects.all()
+
+    def post(self, request):
+        print(request.data['Username'])
+        if not request.data['Username']:
+            return Response(ReturnResponse.Response(1, __name__, 'error', 0).return_json(),
+                            status=status.HTTP_400_BAD_REQUEST)
+        if len(request.data['Username']) <= 5:
+            return Response(ReturnResponse.Response(1, __name__, 'error', 0).return_json(), status=status.HTTP_400_BAD_REQUEST)
+        try:
+            custom_user = CustomUser.objects.get(email=request.data['Username'])
+        except ObjectDoesNotExist as error:
+            return Response(ReturnResponse.Response(1, __name__, "error", 0).return_json(),
+                    status=status.HTTP_400_BAD_REQUEST)
+        return Response(ReturnResponse.Response(0, __name__, "success", custom_user.pk).return_json(),
+                    status=status.HTTP_200_OK)
 
 
 class ResetPassword(generics.ListAPIView):
