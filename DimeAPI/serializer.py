@@ -237,7 +237,7 @@ class DimeTableChartSerializer(ModelSerializer):
 
     class Meta:
         model = DimeFund
-        fields = ('rank', 'name', 'value', 'percent_of_dime', 'market_cap')
+        fields = ('rank', 'name', 'value', 'percent_of_dime', 'market_cap', 'end_price',)
 
 
 class DimeTableListChartSerializer(ModelSerializer):

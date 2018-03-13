@@ -11,7 +11,6 @@ from DimeAPI.settings.base import \
     EMAIL_LOGIN_URL, \
     NOTIFICATION_TYPE, \
     EMAIL_VERIFY_ACCOUNT_URL, \
-    ENGINE_DOMAIN, \
     EMAIL_VERIFY_TRACK_URL, \
     EMAIL_ADDRESS_STATUS, \
     PASSWORD_RESET_URL, \
@@ -21,6 +20,7 @@ from DimeAPI.settings.base import \
     REGISTER_STATUS
 from DimeAPI.models import \
     EmailTemplate, \
+    MailServer, \
     Notification, \
     NotificationType, \
     NotificationStatus, \
@@ -48,6 +48,11 @@ class MyEmail:
     emailUsername = EMAIL_SERVER['USER']
 
     def __init__(self, name):
+        self.mail_server = MailServer.objects.get(pk=1)
+        self.emailPassword = self.mail_serve.password
+        self.emailUsername = self.mail_server.username
+        self.emailHost = self.mail_server.smtp
+
         #  instance variable unique to each instance
         self.name = name
         self.emailTemplate = ""
@@ -343,7 +348,7 @@ class MyEmail:
         self.toEmail = user.email
 
         try:
-            name = Name.objects.get(user=user, type=NameType.objects.get(pk=NAME_TYPE['FIRST']))
+            name = Name.objects.get(user_profile=user.user_profile, type=NameType.objects.get(pk=NAME_TYPE['FIRST']))
             first_name = name.name
             result = 'Read User from DB:{0}'.format(first_name)
             logger.debug(result)
@@ -352,6 +357,7 @@ class MyEmail:
             result = 'Failed reading user first name from DB UserId:{0}'.format(user.pk)
             logger.critical(result)
             logger.critical(error)
+
         self.subject = self.subject.replace('NAME', first_name)
         self.replace_string_in_template('PASSWORD_RESET_URL', PASSWORD_RESET_URL + password_reset.authorization_code)
 
@@ -454,7 +460,7 @@ class MyEmail:
         self.toEmail = user.email
 
         try:
-            name = Name.objects.get(user=user.pk, type=NameType.objects.get(pk=NAME_TYPE['FIRST']))
+            name = Name.objects.get(user_profile=user.user_profile, type=NameType.objects.get(pk=NAME_TYPE['FIRST']))
             first_name = name.name
             result = 'Read user id and first name from password reset:{0}'.format(name.pk)
             logger.debug(result)
@@ -478,7 +484,7 @@ class MyEmail:
             logger.error(result)
         notification.save()
         password_reset.delete()
-        return 'Reset Password Email Sent'
+        return 'Password Reset!'
 
     def send(self):
         return send_mail(
