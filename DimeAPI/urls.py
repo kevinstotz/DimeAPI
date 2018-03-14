@@ -15,13 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from django.conf.urls  import url
+from django.conf.urls import url
 from django.conf.urls import include
 from two_factor.admin import AdminSiteOTPRequired
 from DimeAPI.views import LoginUser, RegisterUser, ReadHistory, NewsLetterSubscribe, RegisterAffiliate, UserProfileView, CountryView, CityView, StateView, ZipCodeView, \
     VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, IndexPage, ForgotPassword, ResetPassword, LogoutUser, GetUserId, DimeTableListChart, DocumentUpload, \
     CoinNews
-
 
 
 urlpatterns = [
@@ -32,6 +31,7 @@ urlpatterns = [
     path(r'api/dime/tablechart/', DimeTableChart.as_view(), name="dimeTableChart"),
     path(r'api/dime/tablelistchart/', DimeTableListChart.as_view(), name="dimeTableListChart"),
     path(r'api/dime/coinnews/', CoinNews.as_view(), name="coinNews"),
+
 
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
     path(r'api/newsletter/', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),

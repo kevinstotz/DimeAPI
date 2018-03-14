@@ -35,13 +35,6 @@ class CitySerializer(ModelSerializer):
         fields = ('name', 'id',)
 
 
-class EmailAddressSerializer(ModelSerializer):
-
-    class Meta:
-        model = EmailAddress
-        fields = ('email',)
-
-
 class DocumentTypeSerializer(ModelSerializer):
 
     class Meta:
@@ -138,6 +131,7 @@ class GetUserIdSerializer(ModelSerializer):
         read_only_fields = ('id',)
         fields = ('id',)
 
+
 class CustomUserSerializer(ModelSerializer):
 
     class Meta:
@@ -145,13 +139,6 @@ class CustomUserSerializer(ModelSerializer):
         read_only_fields = ('id', 'email',)
         fields = ('id', 'email',)
 
-
-class DocumentSerializer(ModelSerializer):
-
-    class Meta:
-        model = Document
-        read_only_fields = ('id', 'name',)
-        fields = ('id', 'name',)
 
 class UserProfileSerializer(ModelSerializer):
     names = NameSerializer(many=True, read_only=True)
@@ -164,13 +151,6 @@ class UserProfileSerializer(ModelSerializer):
         model = UserProfile
         read_only_fields = ('names', 'emailAddresses', 'addresses', 'phoneNumbers', 'customUser',)
         fields = ('names', 'emailAddresses', 'addresses', 'phoneNumbers', 'customUser', 'avatar', 'about',)
-
-
-class DimePeriodSerializer(ModelSerializer):
-
-    class Meta:
-        model = DimePeriod
-        fields = ('start_date', 'end_date',)
 
 
 class DimeHistorySerializer(ModelSerializer):

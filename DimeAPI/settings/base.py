@@ -1,5 +1,6 @@
 from os.path import join, abspath, dirname, relpath, realpath
 from os import environ
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = abspath(dirname(__name__))  # .../DimeAPI
 PROJECT_DIR = dirname(dirname(abspath(__file__)))  # .../DimeAPI/DimeAPI
@@ -7,6 +8,20 @@ SETTINGS_DIR = dirname(realpath(__file__))  # .../DimeAPI/DimeAPI/settings
 PROJECT_NAME = relpath(PROJECT_DIR)  # DimeAPI
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
+SECURE = 'https://'
+UNSECURE = 'http://'
+ENGINE_IP_ADDRESS = ''
+ENGINE_DOMAIN = ''
+WEBSITE_IP_ADDRESS = ''
+ENGINE_HOSTNAME = ''
+WEBSITE_HOSTNAME = ''
+DASHBOARD_PORT = ''
+WEBSITE_PORT = ''
+DASHBOARD_HOSTNAME = ''
+ENGINE_PORT = ''
+DASHBOARD_IP_ADDRESS = ''
+
 if environ['DJANGO_SERVER_TYPE'].lower() == 'dev':
     DEBUG = True
     DJANGO_LOG_LEVEL = DEBUG
@@ -42,17 +57,11 @@ if environ['DJANGO_SERVER_TYPE'].lower() == 'prod':
     ENGINE_PORT = 10006
 
 
-SECURE = 'https://'
-UNSECURE = 'http://'
-#  WEBSITE_IP_ADDRESS = "127.0.0.1"
-#  WEBSITE_HOSTNAME = 'www.dime.yogishouse.com'
-WEBSITE_PORT = 10004
+
+
 WEBSITE_HOSTNAME_AND_PORT = WEBSITE_HOSTNAME + ":" + str(WEBSITE_PORT)
 WEBSITE_HOSTNAME_URL = UNSECURE + WEBSITE_HOSTNAME + ":" + str(WEBSITE_PORT)
 
-#  DASHBOARD_IP_ADDRESS = "127.0.0.1"
-#  DASHBOARD_HOSTNAME = 'dashboard.dime.yogishouse.com'
-DASHBOARD_PORT = 10005
 DASHBOARD_HOSTNAME_AND_PORT = DASHBOARD_HOSTNAME + ":" + str(DASHBOARD_PORT)
 DASHBOARD_HOSTNAME_URL = UNSECURE + DASHBOARD_HOSTNAME + ":" + str(DASHBOARD_PORT)
 
@@ -60,10 +69,6 @@ LOCAL_HOST = 'localhost'
 LOCAL_HOST_PORT = 10004
 LOCAL_HOST_AND_PORT = LOCAL_HOST + str(LOCAL_HOST_PORT)
 
-#  ENGINE_IP_ADDRESS = "127.0.0.1"
-#  ENGINE_DOMAIN = 'yogishouse.com'
-#  ENGINE_HOSTNAME = 'api.dime' + "." + ENGINE_DOMAIN
-ENGINE_PORT = 10006
 ENGINE_HOSTNAME_AND_PORT = ENGINE_HOSTNAME + ":" + str(ENGINE_PORT)
 ENGINE_HOSTNAME_URL = SECURE + ENGINE_HOSTNAME + ":" + str(ENGINE_PORT)
 
@@ -231,7 +236,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
-    'content-type',
+    'Content-Type',
     'Access-Control-Allow-Origin',
     'Accept',
     'Origin',
@@ -340,6 +345,7 @@ EMAIL_SERVER = {
 }
 PASSWORD_LENGTH = 64
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 #  EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #  EMAIL_HOST = 'smtp.mailtrap.io'
 EMAIL_PORT = 465

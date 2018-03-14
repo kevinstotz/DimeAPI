@@ -488,8 +488,6 @@ class MyEmail:
         return 'Password Reset!'
 
     def send(self):
-        print(self.emailUsername)
-        print(self.emailPassword)
         return send_mail(
             self.subject,
             "txt version",

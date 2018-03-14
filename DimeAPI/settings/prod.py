@@ -16,6 +16,7 @@ DATABASES = {
         'OPTIONS': {
             'read_default_file': join('/', 'etc/', 'mysql/', 'conf.d/', 'mysql.dimeAPI.cnf'),
         },
+
     },
     'coins': {
         'NAME': 'DimeCoins',

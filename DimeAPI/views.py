@@ -2,6 +2,10 @@ import logging
 import json
 from rest_framework import serializers
 from rest_framework.mixins import CreateModelMixin
+from django.apps import apps
+from rest_framework import serializers
+from rest_framework.mixins import CreateModelMixin
+from oauth2_provider.views.generic import ProtectedResourceView
 from datetime import datetime, timedelta
 from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
     EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE
@@ -15,6 +19,7 @@ from DimeAPI.serializer import RegisterSerializer, DimeTableChartSerializer, Con
     DocumentSerializer, CoinNewsSerializer
 
 from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch, NewsFeed
+
 from django_filters.rest_framework import DjangoFilterBackend
 
 from DimeAPI.permissions import IsAuthenticatedOrCreate, IsAuthenticated

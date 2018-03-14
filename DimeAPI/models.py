@@ -225,6 +225,7 @@ class DocumentType(models.Model):
     class Meta:
         ordering = ('type',)
 
+
 class FileType(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=20, verbose_name="Type of Document")
@@ -238,10 +239,10 @@ class FileType(models.Model):
 
 
 class MailServer(models.Model):
-    vendor = models.CharField(max_length=255,blank=False,verbose_name="vendor name",default="No Name")
-    username = models.CharField(max_length=EMAIL_LENGTH,blank=False,verbose_name="username",default="No Name")
-    password = models.CharField(max_length=PASSWORD_LENGTH,blank=False,verbose_name="password",default="No Name")
-    server = models.CharField(max_length=255,blank=False,verbose_name="server name",default="No Name")
+    vendor = models.CharField(max_length=255, blank=False, verbose_name="vendor name", default="No Name")
+    username = models.CharField(max_length=EMAIL_LENGTH, blank=False, verbose_name="username", default="No Name")
+    password = models.CharField(max_length=PASSWORD_LENGTH, blank=False, verbose_name="password", default="No Name")
+    server = models.CharField(max_length=255, blank=False, verbose_name="server name", default="No Name")
     port = models.IntegerField(blank=False, default=465)
     objects = models.Manager()
 
@@ -253,14 +254,15 @@ class MailServer(models.Model):
 
 
 class Document(models.Model):
-    name = models.CharField(max_length=255,blank=False,verbose_name="Filename of document",default="No Name")
+    name = models.CharField(max_length=255, blank=False, verbose_name="Filename of document", default="No Name")
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, default=1)
-    type =  models.ForeignKey(DocumentType, on_delete=models.CASCADE, default=1)
+    type = models.ForeignKey(DocumentType, on_delete=models.CASCADE, default=1)
     file_type = models.ForeignKey(FileType, on_delete=models.CASCADE, default=1)
     size = models.IntegerField(blank=False, default=0)
     status = models.ForeignKey(DocumentStatus, on_delete=models.CASCADE, default=1)
     inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
     modified = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
+    objects = models.Manager()
 
     def __str__(self):
         return '%s' % self.type
