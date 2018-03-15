@@ -237,9 +237,11 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'Content-Type',
+    'Content-Disposition',
     'Access-Control-Allow-Origin',
     'Accept',
     'Origin',
+    'enctype',
     'Accept-Encoding',
     'Redirect',
     'Authorization'
@@ -331,6 +333,8 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = False
 
+MEDIA_URL  = '/media/'
+MEDIA_ROOT = join(BASE_DIR, 'media')
 GEOIP_PATH = join(PROJECT_DIR, 'assets')
 GOOGLE_MAPS_API_KEY = 'AIzaSyCdQe4RDmD4pYXiYJihZf90s-8tdQX4EwU'
 

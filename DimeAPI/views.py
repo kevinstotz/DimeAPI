@@ -1,6 +1,9 @@
 import logging
 import json
+from django.core.files.storage import FileSystemStorage
 from rest_framework import serializers
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from rest_framework.mixins import CreateModelMixin
 from django.apps import apps
 from rest_framework import serializers
@@ -11,7 +14,7 @@ from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
     EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE
 from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeFund, \
     NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, DimeHistory, \
-    DimePeriod, ContactUsForm, Affiliate, Country, State, City, ZipCode, UserProfile, Document
+    DimePeriod, ContactUsForm, Affiliate, Country, State, City, ZipCode, UserProfile, Document, FileType, DocumentType, DocumentStatus
 
 from DimeAPI.serializer import RegisterSerializer, DimeTableChartSerializer, ContactUsFormSerializer, GetUserIdSerializer, \
     NewsLetterSerializer, CustomUserSerializer, DimeHistorySerializer, DimePieChartSerializer, UserProfileSerializer, \
@@ -31,8 +34,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.parsers import JSONParser, FileUploadParser
-from rest_framework import viewsets
+from rest_framework.parsers import JSONParser, FileUploadParser, MultiPartParser
+from rest_framework import viewsets, views
 
 logger = logging.getLogger(__name__)
 
@@ -237,16 +240,26 @@ class ReadHistory(generics.ListAPIView):
         # queryset = DimeMutualFund.objects.all()
 
 
-class DocumentUpload(CreateModelMixin, viewsets.GenericViewSet):
-    queryset = Document.objects.all()
+class DocumentUpload(views.APIView):
     model = Document
-    parser_classes = (FileUploadParser)
-    serializer_class = DocumentSerializer
-    permission_classes = (IsAuthenticated,)
+    parser_classes = (FileUploadParser, )
+    permission_classes = (AllowAny,)
 
-    def create(self, request, *args, **kwargs):
-        print( request.data['file'])
-        serializer = DocumentSerializer(data=request.data)
+    def post(self, request, filename, format=None):
+        print(request.data['file'])
+        file_obj = request.data['file']
+        #  print(request.FILES)
+        #  myfile = request.data['file']
+        #  fs = FileSystemStorage()
+        #  filename = fs.save(request.data['file'], myfile)
+        document = Document()
+        document.document = file_obj
+        document.file_type = FileType.objects.get(pk=1)
+        document.status = DocumentStatus.objects.get(pk=1)
+        document.type = DocumentType.objects.get(pk=1)
+        document.save()
+        return Response(ReturnResponse.Response(1, __name__, 'success', "u").return_json(),
+                        status=status.HTTP_201_CREATED)
 
         try:
             serializer.is_valid(raise_exception=True)
@@ -267,9 +280,6 @@ class DocumentUpload(CreateModelMixin, viewsets.GenericViewSet):
         return Response(ReturnResponse.Response(1, __name__, 'success', result).return_json(),
                         status=status.HTTP_201_CREATED)
 
-    def post(self, request):
-        print(request.data)
-        return Response(ReturnResponse.Response(1, __name__, 'success', "fsd").return_json(), status=status.HTTP_201_CREATED)
 
 # LoginRequiredMixin,
 class UserProfileView(generics.ListAPIView):
