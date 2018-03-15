@@ -1,9 +1,9 @@
-from django.core.mail import send_mail
+from django.core import mail
+from django.core.mail import EmailMultiAlternatives
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import timedelta, datetime
 import time
 from DimeAPI.settings.base import \
-    EMAIL_SERVER, \
     EMAIL_TEMPLATE_DIR, \
     NOTIFICATION_STATUS, \
     EMAIL_FROM_DOMAIN, \
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 class MyEmail:
-
+    mail_server = ""
     # class variable shared by all instances
     emailHost = ""
     emailPort = 0
@@ -48,7 +48,7 @@ class MyEmail:
     emailUsername = ""
 
     def __init__(self, name):
-        self.mail_server = MailServer.objects.get(pk=1)
+        self.mail_server = MailServer.objects.get(pk=2)
         self.emailPassword = self.mail_server.password
         self.emailUsername = self.mail_server.username
         self.emailHost = self.mail_server.server
@@ -488,12 +488,21 @@ class MyEmail:
         return 'Password Reset!'
 
     def send(self):
-        return send_mail(
+        connection = mail.get_connection()
+        connection.host = self.emailHost
+        connection.port = self.emailPort
+        connection.username = self.emailUsername
+        connection.password = self.emailPassword
+        connection.use_ssl = False
+        email1 = EmailMultiAlternatives(
             self.subject,
-            "txt version",
+            'txt email',
             self.fromEmail,
             [self.toEmail],
-            html_message=self.body,
-            auth_user=self.emailUsername,
-            auth_password=self.emailPassword,
-            fail_silently=False)
+            connection=connection,
+        )
+        email1.attach_alternative(self.body, "text/html")
+        res = email1.send()
+        print(res)
+        connection.close()
+        return res

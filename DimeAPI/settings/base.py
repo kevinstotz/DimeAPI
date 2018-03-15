@@ -337,24 +337,24 @@ GOOGLE_MAPS_API_KEY = 'AIzaSyCdQe4RDmD4pYXiYJihZf90s-8tdQX4EwU'
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 SESSION_COOKIE_HTTPONLY = False
 
-EMAIL_SERVER = {
-    'HOST': 'smtp.mailtrap.io',
-    'USER': 'c8bed2fa6aecd1',
-    'PASSWORD': '4eaf0f51577f20',
-    'PORT': 2525
-}
+# EMAIL_SERVER = {
+#     'HOST': 'smtp.mailtrap.io',
+#     'USER': 'c8bed2fa6aecd1',
+#     'PASSWORD': '4eaf0f51577f20',
+#     'PORT': 2525
+# }
 PASSWORD_LENGTH = 64
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 #  EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #  EMAIL_HOST = 'smtp.mailtrap.io'
-EMAIL_PORT = 465
+#  EMAIL_PORT = 465
 #  EMAIL_HOST_USER = 'c8bed2fa6aecd1'
 #  EMAIL_HOST_PASSWORD = '4eaf0f51577f20'
 EMAIL_TIMEOUT = 10
 EMAIL_LENGTH = 100
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
+#  EMAIL_USE_TLS = False
+#  EMAIL_USE_SSL = True
 
 EMAIL_TEMPLATE_DIR = join(PROJECT_NAME, "EmailTemplates")
 EMAIL_FROM_DOMAIN = 'yogishouse.com'
