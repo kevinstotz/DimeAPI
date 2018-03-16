@@ -53,7 +53,7 @@ if 'dev' in environ['DJANGO_SERVER_TYPE'].lower():
     ENGINE_HOSTNAME_URL = SECURE + ENGINE_HOSTNAME + ":" + str(ENGINE_PORT)
 
     EMAIL_LOGIN_URL = WEBSITE_HOSTNAME_URL + '/auth/login'
-    WELCOME_EMAIL_LOGIN = WEBSITE_HOSTNAME_URL + '/auth/login'
+    WELCOME_EMAIL_LOGIN = WEBSITE_HOSTNAME_URL + '/login'
     EMAIL_VERIFY_ACCOUNT_URL = WEBSITE_HOSTNAME_URL + '/register/verify/'
     EMAIL_VERIFY_TRACK_URL = WEBSITE_HOSTNAME_URL + '/api/statistics/track.png?auth='
     FORGOT_PASSWORD_URL = WEBSITE_HOSTNAME_URL + '/forgotpassword/'

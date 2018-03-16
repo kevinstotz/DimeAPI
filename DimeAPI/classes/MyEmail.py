@@ -59,21 +59,41 @@ class MyEmail:
         self.name = name
         self.emailTemplate = ""
         self.subject = ""
-        self.body = ""
+        self.bodyHtml = ""
+        self.bodyText = ""
         self.toEmail = ""
         self.fromEmail = ""
 
-    def replace_string_in_template(self, search, replace):
+    def replace_string_in_text_template(self, search, replace):
         logger.debug('Searched:{0} Replaced:{1}'.format(search, replace))
-        self.body = self.body.replace(search, replace)
+        self.bodyText = self.bodyText.replace(search, replace)
 
-    def load_template(self, template_filename):
+    def replace_string_in_html_template(self, search, replace):
+        logger.debug('Searched:{0} Replaced:{1}'.format(search, replace))
+        self.bodyHtml = self.bodyHtml.replace(search, replace)
+
+    def load_text_template(self, template_filename):
 
         filename = join(EMAIL_TEMPLATE_DIR, template_filename)
 
         with open(filename, "r", encoding="utf8") as template:
-            self.body = template.read()
-        if len(self.body) > 10:
+            self.bodyText = template.read()
+        if len(self.bodyText) > 10:
+            result = 'Read Email Template:{0}'.format(filename)
+            logger.debug(result)
+            return ReturnResponse.Response(0, __name__, 'success', result).return_json()
+        else:
+            result = 'Failed Reading Email Template:{0}'.format(filename)
+            logger.critical(result)
+            return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
+
+    def load_html_template(self, template_filename):
+
+        filename = join(EMAIL_TEMPLATE_DIR, template_filename)
+
+        with open(filename, "r", encoding="utf8") as template:
+            self.bodyHtml = template.read()
+        if len(self.bodyHtml) > 10:
             result = 'Read Email Template:{0}'.format(filename)
             logger.debug(result)
             return ReturnResponse.Response(0, __name__, 'success', result).return_json()
@@ -99,7 +119,7 @@ class MyEmail:
         notification.type = NotificationType(pk=NOTIFICATION_TYPE['EMAIL'])
 
         try:
-            self.load_template(email_template.htmlFilename.name)
+            self.load_html_template(email_template.htmlFilename.name)
             result = 'read email template file:{0}'.format(email_template.htmlFilename)
             logger.debug(result)
         except Exception as error:
@@ -111,11 +131,27 @@ class MyEmail:
         self.subject = email_template.subject
         self.fromEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
         self.toEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
-        self.replace_string_in_template('EMAIL_VERIFY_TRACK_URL',
+        self.replace_string_in_html_template('EMAIL_VERIFY_TRACK_URL',
                                         EMAIL_VERIFY_TRACK_URL + "contactus")
-        self.replace_string_in_template('NAME', contactus.validated_data['name'] + " ")
-        self.replace_string_in_template('EMAIL', contactus.validated_data['email'])
-        self.replace_string_in_template('MESSAGE', contactus.validated_data['message'])
+        self.replace_string_in_html_template('NAME', contactus.validated_data['name'] + " ")
+        self.replace_string_in_html_template('EMAIL', contactus.validated_data['email'])
+        self.replace_string_in_html_template('MESSAGE', contactus.validated_data['message'])
+
+        try:
+            self.load_text_template(email_template.textFilename.name)
+            result = 'read email template file:{0}'.format(email_template.textFilename)
+            logger.debug(result)
+        except Exception as error:
+            result = 'Failed reading Email template:{0}'.format(email_template.textFilename)
+            logger.critical(result)
+            logger.critical(error)
+            return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
+
+        self.replace_string_in_text_template('EMAIL_VERIFY_TRACK_URL',
+                                        EMAIL_VERIFY_TRACK_URL + "contactus")
+        self.replace_string_in_text_template('NAME', contactus.validated_data['name'] + " ")
+        self.replace_string_in_text_template('EMAIL', contactus.validated_data['email'])
+        self.replace_string_in_text_template('MESSAGE', contactus.validated_data['message'])
 
         if self.send() == 1:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['SENT'])
@@ -149,7 +185,7 @@ class MyEmail:
         notification.type = NotificationType(pk=NOTIFICATION_TYPE['EMAIL'])
 
         try:
-            self.load_template(email_template.htmlFilename.name)
+            self.load_html_template(email_template.htmlFilename.name)
             result = 'read email template file:{0}'.format(email_template.htmlFilename)
             logger.debug(result)
         except Exception as error:
@@ -162,12 +198,29 @@ class MyEmail:
         self.fromEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
         self.toEmail = register_user.email
 
-        self.replace_string_in_template('EMAIL_VERIFY_TRACK_URL',
+        self.replace_string_in_html_template('EMAIL_VERIFY_TRACK_URL',
                                         EMAIL_VERIFY_TRACK_URL + register_user.authorizationCode)
-        self.replace_string_in_template('EMAIL_VERIFY_ACCOUNT_URL',
+        self.replace_string_in_html_template('EMAIL_VERIFY_ACCOUNT_URL',
                                         EMAIL_VERIFY_ACCOUNT_URL + register_user.authorizationCode)
-        self.replace_string_in_template('FIRST_NAME', register_user.firstName + " ")
-        self.replace_string_in_template('LAST_NAME', register_user.lastName)
+        self.replace_string_in_html_template('FIRST_NAME', register_user.firstName + " ")
+        self.replace_string_in_html_template('LAST_NAME', register_user.lastName)
+
+        try:
+            self.load_text_template(email_template.textFilename.name)
+            result = 'read email template file:{0}'.format(email_template.textFilename)
+            logger.debug(result)
+        except Exception as error:
+            result = 'Failed reading Email template:{0}'.format(email_template.textFilename)
+            logger.critical(result)
+            logger.critical(error)
+            return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
+
+        self.replace_string_in_text_template('EMAIL_VERIFY_TRACK_URL',
+                                        EMAIL_VERIFY_TRACK_URL + register_user.authorizationCode)
+        self.replace_string_in_text_template('EMAIL_VERIFY_ACCOUNT_URL',
+                                        EMAIL_VERIFY_ACCOUNT_URL + register_user.authorizationCode)
+        self.replace_string_in_text_template('FIRST_NAME', register_user.firstName + " ")
+        self.replace_string_in_text_template('LAST_NAME', register_user.lastName)
 
         if self.send() == 1:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['SENT'])
@@ -222,11 +275,21 @@ class MyEmail:
             return ReturnResponse.Response(1, __name__, 'Failed loading email type notification', result).return_json()
 
         try:
-            self.load_template(email_template.htmlFilename.name)
+            self.load_html_template(email_template.htmlFilename.name)
             result = 'read email template file:{0}'.format(email_template.htmlFilename.name)
             logger.debug(result)
         except Exception as error:
             result = 'Failed reading email template:{0}'.format(email_template.htmlFilename.name)
+            logger.error(error)
+            logger.error(result)
+            return ReturnResponse.Response(1, __name__, 'Failed reading email template', result).return_json()
+
+        try:
+            self.load_text_template(email_template.textFilename.name)
+            result = 'read email template file:{0}'.format(email_template.textFilename.name)
+            logger.debug(result)
+        except Exception as error:
+            result = 'Failed reading email template:{0}'.format(email_template.textFilename.name)
             logger.error(error)
             logger.error(result)
             return ReturnResponse.Response(1, __name__, 'Failed reading email template', result).return_json()
@@ -277,11 +340,17 @@ class MyEmail:
             return ReturnResponse.Response(1, __name__, 'Failed Loading Name', result).return_json()
 
         self.subject = self.subject.replace('NAME', name.name)
-        self.replace_string_in_template('PASSWORD', str(new_password))
-        self.replace_string_in_template('USERNAME', email_address.email)
-        self.replace_string_in_template('FIRST_NAME', name.name)
-        self.replace_string_in_template('EMAIL_VERIFY_TRACK_URL', EMAIL_VERIFY_TRACK_URL)
-        self.replace_string_in_template('WELCOME_EMAIL_LOGIN', WELCOME_EMAIL_LOGIN)
+        self.replace_string_in_html_template('PASSWORD', str(new_password))
+        self.replace_string_in_html_template('USERNAME', email_address.email)
+        self.replace_string_in_html_template('FIRST_NAME', name.name)
+        self.replace_string_in_html_template('EMAIL_VERIFY_TRACK_URL', EMAIL_VERIFY_TRACK_URL)
+        self.replace_string_in_html_template('WELCOME_EMAIL_LOGIN', WELCOME_EMAIL_LOGIN)
+
+        self.replace_string_in_text_template('PASSWORD', str(new_password))
+        self.replace_string_in_text_template('USERNAME', email_address.email)
+        self.replace_string_in_text_template('FIRST_NAME', name.name)
+        self.replace_string_in_text_template('EMAIL_VERIFY_TRACK_URL', EMAIL_VERIFY_TRACK_URL)
+        self.replace_string_in_text_template('WELCOME_EMAIL_LOGIN', WELCOME_EMAIL_LOGIN)
 
         if self.send() == 1:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['SENT'])
@@ -336,11 +405,21 @@ class MyEmail:
             return 'Failed Loading Notification type EMAIL'
 
         try:
-            self.load_template(email_template.htmlFilename.name)
+            self.load_html_template(email_template.htmlFilename.name)
             result = 'read email template file:{0}'.format(email_template.htmlFilename)
             logger.debug(result)
         except Exception as error:
             result = 'Failed reading email template:{0}'.format(email_template.htmlFilename)
+            logger.critical(result)
+            logger.critical(error)
+            return 'Failed reading email template'
+
+        try:
+            self.load_text_template(email_template.textFilename.name)
+            result = 'read email template file:{0}'.format(email_template.textFilename)
+            logger.debug(result)
+        except Exception as error:
+            result = 'Failed reading email template:{0}'.format(email_template.textFilename)
             logger.critical(result)
             logger.critical(error)
             return 'Failed reading email template'
@@ -361,8 +440,9 @@ class MyEmail:
             logger.critical(error)
 
         self.subject = self.subject.replace('NAME', first_name)
-        self.replace_string_in_template('PASSWORD_RESET_URL', PASSWORD_RESET_URL + password_reset.authorization_code)
-
+        self.replace_string_in_html_template('PASSWORD_RESET_URL', PASSWORD_RESET_URL + password_reset.authorization_code)
+        self.replace_string_in_text_template('PASSWORD_RESET_URL',
+                                             PASSWORD_RESET_URL + password_reset.authorization_code)
         if self.send() == 1:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['SENT'])
             result = 'Forgot Password Email Sent to:{0}'.format(user.email)
@@ -437,11 +517,21 @@ class MyEmail:
                                     type=NotificationType.objects.get(pk=NOTIFICATION_TYPE['EMAIL']))
 
         try:
-            self.load_template(email_template.htmlFilename.name)
+            self.load_html_template(email_template.htmlFilename.name)
             result = 'read email template file:{0}'.format(email_template.htmlFilename.name)
             logger.debug(result)
         except Exception as error:
             result = 'Failed reading email template:{0}'.format(email_template.htmlFilename)
+            logger.critical(error)
+            logger.critical(result)
+            return result
+
+        try:
+            self.load_text_template(email_template.textFilename.name)
+            result = 'read email template file:{0}'.format(email_template.textFilename.name)
+            logger.debug(result)
+        except Exception as error:
+            result = 'Failed reading email template:{0}'.format(email_template.textFilename)
             logger.critical(error)
             logger.critical(result)
             return result
@@ -475,7 +565,8 @@ class MyEmail:
         user.set_password(request['password'])
         user.save()
         self.subject = self.subject.replace('NAME', first_name)
-        self.replace_string_in_template('EMAIL_LOGIN_URL', str(EMAIL_LOGIN_URL))
+        self.replace_string_in_html_template('EMAIL_LOGIN_URL', str(EMAIL_LOGIN_URL))
+        self.replace_string_in_text_template('EMAIL_LOGIN_URL', str(EMAIL_LOGIN_URL))
         if self.send() == 1:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['SENT'])
             result = 'Reset Password Email Sent to:{0}'.format(user.email)
@@ -497,12 +588,12 @@ class MyEmail:
         connection.use_ssl = False
         email1 = EmailMultiAlternatives(
             self.subject,
-            'txt email',
+            self.bodyText,
             self.fromEmail,
             [self.toEmail],
             connection=connection,
         )
-        email1.attach_alternative(self.body, "text/html")
+        email1.attach_alternative(self.bodyHtml, "text/html")
         res = email1.send()
         print(res)
         connection.close()
