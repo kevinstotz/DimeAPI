@@ -1,0 +1,18 @@
+
+Verify Your Account
+
+Your account information
+
+NAME: FIRST_NAME LAST_NAME
+
+Click the link below to verify your account
+
+EMAIL_VERIFY_ACCOUNT_URL
+
+If you are having any issues with your account, please don't hesitate to contact us by replying to this mail.
+Thanks!
+
+You are receiving this email because you have an account at The Dime Index. If you are not sure why you are receiving this, please contact us.
+
+Sincerely,
+Support
