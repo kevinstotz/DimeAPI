@@ -7,6 +7,7 @@ from DimeAPI.settings.base import \
     EMAIL_TEMPLATE_DIR, \
     NOTIFICATION_STATUS, \
     EMAIL_FROM_DOMAIN, \
+    WELCOME_EMAIL_LOGIN, \
     EMAIL_TEMPLATE, \
     EMAIL_LOGIN_URL, \
     NOTIFICATION_TYPE, \
@@ -221,11 +222,11 @@ class MyEmail:
             return ReturnResponse.Response(1, __name__, 'Failed loading email type notification', result).return_json()
 
         try:
-            self.load_template(email_template.htmlFilenam.namee)
-            result = 'read email template file:{0}'.format(email_template.htmlFilename)
+            self.load_template(email_template.htmlFilename.name)
+            result = 'read email template file:{0}'.format(email_template.htmlFilename.name)
             logger.debug(result)
         except Exception as error:
-            result = 'Failed reading email template:{0}'.format(email_template.htmlFilename)
+            result = 'Failed reading email template:{0}'.format(email_template.htmlFilename.name)
             logger.error(error)
             logger.error(result)
             return ReturnResponse.Response(1, __name__, 'Failed reading email template', result).return_json()
@@ -244,7 +245,7 @@ class MyEmail:
             return ReturnResponse.Response(1, __name__, 'Failed Loading email address status', result).return_json()
 
         try:
-            email_address = EmailAddress.objects.get(user=new_user, status=email_address_status)
+            email_address = EmailAddress.objects.get(user_profile=new_user.user_profile, status=email_address_status)
             result = 'Loaded email address :{0}'.format(email_address.email)
             logger.debug(result)
         except ObjectDoesNotExist as error:
@@ -266,7 +267,7 @@ class MyEmail:
 
         name = ""
         try:
-            name = Name.objects.get(user=new_user, type=name_type)
+            name = Name.objects.get(user_profile=new_user.user_profile, type=name_type)
             result = 'Loaded name:{0}'.format(name.name)
             logger.debug(result)
         except ObjectDoesNotExist as error:
@@ -280,7 +281,7 @@ class MyEmail:
         self.replace_string_in_template('USERNAME', email_address.email)
         self.replace_string_in_template('FIRST_NAME', name.name)
         self.replace_string_in_template('EMAIL_VERIFY_TRACK_URL', EMAIL_VERIFY_TRACK_URL)
-        self.replace_string_in_template('DASHBOARD_HOSTNAME_URL', DASHBOARD_HOSTNAME_URL)
+        self.replace_string_in_template('WELCOME_EMAIL_LOGIN', WELCOME_EMAIL_LOGIN)
 
         if self.send() == 1:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['SENT'])

@@ -9,7 +9,7 @@ password:PASSWORD
 
 Getting Started
 
-URL
+WELCOME_EMAIL_LOGIN
 
 If you are having any issues with your account, please don't hesitate to contact us by replying to this mail.
 Thanks!

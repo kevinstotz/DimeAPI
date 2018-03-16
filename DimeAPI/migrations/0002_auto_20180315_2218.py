@@ -13,100 +13,25 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='document',
-            options={'ordering': ('id', 'type', 'document', 'user', 'status')},
-        ),
-        migrations.AlterModelOptions(
-            name='useragent',
-            options={'ordering': ('platform',)},
-        ),
-        migrations.RemoveField(
-            model_name='useragent',
-            name='browser',
-        ),
-        migrations.RemoveField(
-            model_name='useragent',
-            name='browser_version',
-        ),
-        migrations.RemoveField(
-            model_name='useragent',
-            name='device',
-        ),
-        migrations.RemoveField(
-            model_name='useragent',
-            name='os',
-        ),
-        migrations.RemoveField(
-            model_name='useragent',
-            name='os_version',
-        ),
-        migrations.AddField(
-            model_name='document',
-            name='document',
-            field=models.FileField(default=0, upload_to=DimeAPI.models.user_directory_path),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='mailserver',
-            name='port',
-            field=models.IntegerField(default=465),
-        ),
-        migrations.AddField(
-            model_name='useragent',
-            name='appName',
-            field=models.CharField(blank=True, default='Unknown', max_length=255, null=True, verbose_name='app Name'),
-        ),
-        migrations.AddField(
-            model_name='useragent',
-            name='appVersion',
-            field=models.CharField(blank=True, default='Unknown', max_length=255, null=True, verbose_name='app Version'),
-        ),
-        migrations.AddField(
-            model_name='useragent',
-            name='codeName',
-            field=models.CharField(blank=True, default='Unknown', max_length=255, null=True, verbose_name='code Name'),
-        ),
-        migrations.AddField(
-            model_name='useragent',
-            name='cookiesEnabled',
-            field=models.BooleanField(default=True, verbose_name='cookies'),
-        ),
-        migrations.AddField(
-            model_name='useragent',
-            name='inserted',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now, verbose_name='Time inserted'),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='useragent',
-            name='language',
-            field=models.CharField(blank=True, default='Unknown', max_length=30, null=True, verbose_name='language'),
-        ),
-        migrations.AddField(
-            model_name='useragent',
-            name='platform',
-            field=models.CharField(blank=True, default='Unknown', max_length=255, null=True, verbose_name='platform'),
-        ),
         migrations.AlterField(
             model_name='address',
             name='city',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, related_name='addresses', to='DimeAPI.City'),
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='addresses', to='DimeAPI.City'),
         ),
         migrations.AlterField(
             model_name='address',
             name='country',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, related_name='addresses', to='DimeAPI.Country'),
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='addresses', to='DimeAPI.Country'),
         ),
         migrations.AlterField(
             model_name='address',
             name='state',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, related_name='addresses', to='DimeAPI.State'),
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='addresses', to='DimeAPI.State'),
         ),
         migrations.AlterField(
             model_name='address',
             name='zipcode',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, related_name='addresses', to='DimeAPI.ZipCode'),
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='addresses', to='DimeAPI.ZipCode'),
         ),
         migrations.AlterField(
             model_name='country',

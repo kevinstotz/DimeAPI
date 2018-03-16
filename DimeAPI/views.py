@@ -11,9 +11,9 @@ from rest_framework.mixins import CreateModelMixin
 from oauth2_provider.views.generic import ProtectedResourceView
 from datetime import datetime, timedelta
 from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
-    EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE
+    EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE, EMAIL_ADDRESS_TYPE
 from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeFund, \
-    NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, DimeHistory, \
+    NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, DimeHistory, EmailAddressType,  \
     DimePeriod, ContactUsForm, Affiliate, Country, State, City, ZipCode, UserProfile, Document, FileType, DocumentType, DocumentStatus
 
 from DimeAPI.serializer import RegisterSerializer, DimeTableChartSerializer, ContactUsFormSerializer, GetUserIdSerializer, \
@@ -524,7 +524,6 @@ class VerifyRegister(generics.ListAPIView):
                 return Response(ReturnResponse.Response(1, __name__, 'Register Code Expired', result).return_json(),
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        new_user = CustomUser(status=UserStatus.objects.get(pk=USER_STATUS['ACTIVE']), user_profile=UserProfile())
         user_util = UserUtil.UserUtils()
         if user_util.find_username(verify_register.firstName + verify_register.lastName) != 0:
             result = 'Failed creating username: already exists'
@@ -540,23 +539,33 @@ class VerifyRegister(generics.ListAPIView):
             return Response(ReturnResponse.Response(1, __name__, 'Email Already Exists', result).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        new_user.email = verify_register.email
-        new_user.username = user_util.new_username
-        pw = UserUtil.generate_password()
-        new_user.set_password(pw)
-        new_user.save()
+        user_profile = UserProfile()
+        user_profile.save()
+        new_user = CustomUser(email=verify_register.email,
+                              username=user_util.new_username,
+                              status=UserStatus.objects.get(pk=USER_STATUS['ACTIVE']),
+                              user_profile=user_profile)
+        try:
+            pw = UserUtil.generate_password()
+            new_user.set_password(pw)
+            new_user.save()
+        except Exception as e:
+            print(type(e))
+            print(e)
+            print(e.args)
 
         email = EmailAddress(email=verify_register.email,
-                             user=new_user,
+                             user_profile=user_profile,
+                             type=EmailAddressType(pk=EMAIL_ADDRESS_TYPE['PRIMARY']),
                              status=EmailAddressStatus(pk=EMAIL_ADDRESS_STATUS['ACTIVE']))
 
         first_name = Name(name=verify_register.firstName,
                           type=NameType.objects.get(pk=NAME_TYPE['FIRST']),
-                          user=new_user)
+                          user_profile=user_profile)
 
         last_name = Name(name=verify_register.lastName,
                          type=NameType.objects.get(pk=NAME_TYPE['LAST']),
-                         user=new_user)
+                         user_profile=user_profile)
 
         email.save()
         first_name.save()
