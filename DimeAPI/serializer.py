@@ -59,12 +59,19 @@ class DocumentSerializer(ModelSerializer):
         fields = ('id', 'status', 'name', 'type', 'size',)
 
 
+class DocumentSerializer(ModelSerializer):
+
+    class Meta:
+        model = Document
+        fields = ('status', 'name', 'type', )
+
 
 class NameTypeSerializer(ModelSerializer):
 
     class Meta:
         model = NameType
         fields = ('id', 'type',)
+
 
 
 class ZipCodeSerializer(ModelSerializer):
@@ -290,6 +297,7 @@ class ContactUsFormSerializer(ModelSerializer):
 
 class RegisterSerializer(ModelSerializer):
     deviceInfo = UserAgentSerializer()
+
     status = RegisterStatus()
 
     class Meta:

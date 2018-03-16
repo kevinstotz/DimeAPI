@@ -21,6 +21,8 @@ from DimeAPI.serializer import RegisterSerializer, DimeTableChartSerializer, Con
     DimeRebalanceDateValueSerializer, RegisterAffiliateSerializer, CountrySerializer, DimeTableListChartSerializer, \
     DocumentSerializer, CoinNewsSerializer, DocumentTypeSerializer, DocumentSerializer
 
+
+
 from DimeAPI.classes import ReturnResponse, MyEmail, EmailUtil, UserUtil, UnixEpoch, NewsFeed
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -108,6 +110,7 @@ class DimeLineChart(generics.ListAPIView):
     filter_fields = ('xchange',)
 
 
+
 class UserDocuments(generics.ListAPIView):
     model = Document
     serializer_class = DocumentSerializer
@@ -126,6 +129,7 @@ class DocumentTypes(generics.ListAPIView):
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
     queryset = DocumentType.objects.all()
+
 
 
 class DimeRebalanceDateValue(generics.ListAPIView):

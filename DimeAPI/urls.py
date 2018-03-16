@@ -23,6 +23,7 @@ from DimeAPI.views import LoginUser, RegisterUser, ReadHistory, NewsLetterSubscr
     CoinNews, DocumentTypes, UserDocuments
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
@@ -40,8 +41,10 @@ urlpatterns = [
     path(r'api/affiliate/register/', RegisterAffiliate.as_view({"post": "create"}), name="registerAffiliate"),
     path(r'account/login/', LoginUser.as_view(), name="loginUser"),
     path(r'api/account/documentupload/<slug:filename>/', DocumentUpload.as_view(), name="documentUpload"),
+
     path(r'api/account/documenttypes/', DocumentTypes.as_view(), name="documentTypes"),
     path(r'api/account/documents/', UserDocuments.as_view(), name="userDocuments"),
+
     path(r'api/account/', GetUserId.as_view(), name="getUserId"),
     path(r'api/register/verify/<slug:Authorization_Code>', VerifyRegister.as_view(), name="verifyRegisterUser"),
     path(r'account/logout', LogoutUser.as_view(), name="logoutUser"),

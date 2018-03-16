@@ -24,3 +24,4 @@ class NewsFeed(object):
             articles_json['domain'] = article['source']['domain']
             articles_array.append(articles_json)
             if idx == 2: return articles_array
+
