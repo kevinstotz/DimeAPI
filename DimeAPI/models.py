@@ -598,21 +598,22 @@ class DimeHistory(models.Model):
 
 class UserAgent(models.Model):
     userAgent = models.CharField(max_length=255, blank=True, null=True, default='Unknown', verbose_name="User Agent")
-    os = models.CharField(max_length=20, blank=True, null=True, default='Unknown', verbose_name="Operating System")
-    browser = models.CharField(max_length=20, blank=True, null=True, default='Unknown', verbose_name="Browser")
-    device = models.CharField(max_length=20, blank=True, null=True, default='Unknown', verbose_name="Device")
-    os_version = models.CharField(max_length=30, blank=True, null=True, default='Unknown', verbose_name="OS Version")
-    browser_version = models.CharField(max_length=30, blank=True, null=True,
-                                       default='Unknown', verbose_name="OS Version")
-    inserted = UnixEpochDateTimeField(default=0.0)
+    codeName = models.CharField(max_length=255, blank=True, null=True, default='Unknown', verbose_name="code Name")
+    appName = models.CharField(max_length=255, blank=True, null=True, default='Unknown', verbose_name="app Name")
+    appVersion = models.CharField(max_length=255, blank=True, null=True, default='Unknown', verbose_name="app Version")
+    cookiesEnabled = models.BooleanField(default=True, verbose_name="cookies")
+    language = models.CharField(max_length=30, blank=True, null=True, default='Unknown', verbose_name="language")
+    platform = models.CharField(max_length=255, blank=True, null=True,
+                                       default='Unknown', verbose_name="platform")
+    inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
 
     objects = models.Manager()
 
     def __str__(self):
-        return '%s' % self.userAgent
+        return '%s' % self.appName
 
     class Meta:
-        ordering = ('os',)
+        ordering = ('platform',)
 
 
 class Affiliate(models.Model):
@@ -648,7 +649,7 @@ class Register(models.Model):
     lastName = models.CharField(max_length=LAST_NAME_LENGTH, verbose_name="Last Name of Register")
     zipCode = models.CharField(max_length=10, verbose_name="Zip Code of Register", default="00000")
     ipAddress = models.GenericIPAddressField(blank=True, null=True, verbose_name="IP Address of Register")
-    deviceInfo = models.ForeignKey(UserAgent, on_delete=models.CASCADE)
+    userAgent = models.ForeignKey(UserAgent, on_delete=models.CASCADE)
     authorizationCode = models.CharField(max_length=AUTHORIZATION_CODE_LENGTH,
                                          blank=False,
                                          verbose_name="Auto Generated Auth Code")

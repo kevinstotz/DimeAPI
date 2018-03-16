@@ -285,7 +285,7 @@ class UserAgentSerializer(ModelSerializer):
 
     class Meta:
         model = UserAgent
-        fields = ('userAgent', 'os', 'browser', 'device', 'os_version', 'browser_version',)
+        fields = ('userAgent', 'codeName', 'appName', 'appVersion', 'cookiesEnabled', 'language', 'platform',)
 
 
 class ContactUsFormSerializer(ModelSerializer):
@@ -296,13 +296,12 @@ class ContactUsFormSerializer(ModelSerializer):
 
 
 class RegisterSerializer(ModelSerializer):
-    deviceInfo = UserAgentSerializer()
-
+    userAgent = UserAgentSerializer()
     status = RegisterStatus()
 
     class Meta:
         model = Register
-        fields = ('email', 'password', 'ipAddress', 'authorizationCode', 'deviceInfo',
+        fields = ('email', 'password', 'ipAddress', 'authorizationCode', 'userAgent',
                   'status', 'inserted', 'firstName', 'lastName', 'zipCode')
         read_only_fields = ('ipAddress', 'authorizationCode', 'inserted',)
         extra_kwargs = {
@@ -311,13 +310,13 @@ class RegisterSerializer(ModelSerializer):
         }
 
     def create(self, validated_data):
-        device_info = validated_data.pop('deviceInfo')
-        user_agent = UserAgent.objects.create(**device_info)
+        userAgent = validated_data.pop('userAgent')
+        user_agent = UserAgent.objects.create(**userAgent)
         return Register.objects.create(**validated_data,
                                        authorizationCode=get_authorization_code(),
                                        inserted=datetime.utcnow(),
                                        status=RegisterStatus.objects.get(pk=REGISTER_STATUS['SENT']),
-                                       deviceInfo=user_agent)
+                                       userAgent=user_agent)
 
     def validate_email(self, value):
         email_util = EmailUtil()
