@@ -369,6 +369,7 @@ SESSION_COOKIE_HTTPONLY = False
 #     'PASSWORD': '4eaf0f51577f20',
 #     'PORT': 2525
 # }
+USER_PASSWORD_LENGTH = 10
 PASSWORD_LENGTH = 64
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 

@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from DimeAPI.models import CustomUser
-from DimeAPI.settings.base import AUTHORIZATION_CODE_LENGTH, PASSWORD_LENGTH
+from DimeAPI.settings.base import AUTHORIZATION_CODE_LENGTH, USER_PASSWORD_LENGTH
 from random import randint, choice
 import string
 import logging
@@ -45,7 +45,7 @@ def get_authorization_code():
 
 def generate_password():
     letters = string.ascii_lowercase
-    new_password = ''.join(choice(letters) for i in range(PASSWORD_LENGTH))
+    new_password = ''.join(choice(letters) for i in range(USER_PASSWORD_LENGTH))
     result = 'Generated new Password:{0}'.format(new_password)
     logger.debug(result)
     return new_password
