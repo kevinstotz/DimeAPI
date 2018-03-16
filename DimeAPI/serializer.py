@@ -286,12 +286,12 @@ class ContactUsFormSerializer(ModelSerializer):
 
 
 class RegisterSerializer(ModelSerializer):
-    deviceInfo = UserAgentSerializer()
+    #  deviceInfo = UserAgentSerializer()
     status = RegisterStatus()
 
     class Meta:
         model = Register
-        fields = ('email', 'password', 'ipAddress', 'authorizationCode', 'deviceInfo',
+        fields = ('email', 'password', 'ipAddress', 'authorizationCode', 
                   'status', 'inserted', 'firstName', 'lastName', 'zipCode')
         read_only_fields = ('ipAddress', 'authorizationCode', 'inserted',)
         extra_kwargs = {

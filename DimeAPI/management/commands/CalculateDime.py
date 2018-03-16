@@ -11,7 +11,7 @@ from django.db.models import Sum
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        periods = DimePeriod.objects.all().order_by('start_date')[1:]
+        periods = DimePeriod.objects.all().order_by('start_date')[15:]
         xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
 
         for period in periods:
