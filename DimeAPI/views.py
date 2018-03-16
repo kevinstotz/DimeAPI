@@ -524,7 +524,7 @@ class VerifyRegister(generics.ListAPIView):
                 return Response(ReturnResponse.Response(1, __name__, 'Register Code Expired', result).return_json(),
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        new_user = CustomUser(status=UserStatus.objects.get(pk=USER_STATUS['ACTIVE']))
+        new_user = CustomUser(status=UserStatus.objects.get(pk=USER_STATUS['ACTIVE']), user_profile=UserProfile())
         user_util = UserUtil.UserUtils()
         if user_util.find_username(verify_register.firstName + verify_register.lastName) != 0:
             result = 'Failed creating username: already exists'
