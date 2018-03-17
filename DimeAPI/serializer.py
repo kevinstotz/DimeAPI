@@ -6,7 +6,7 @@ from rest_framework import serializers
 from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeFund, NewsLetter, UserAgent, EmailAddressType, PhoneNumber, PhoneNumberType, UserProfile, \
      Currency, DimeHistory, Notification, ContactUsForm, DimePeriod, Xchange, Affiliate, Name, NameType, EmailAddress, State, City, Country, Address, ZipCode, \
      Document, DocumentType, DocumentStatus, FileType
-from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH, XCHANGE
+from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH, XCHANGE, ENGINE_HOSTNAME_URL, MEDIA_URL
 from DimeAPI.classes.UserUtil import get_authorization_code
 from DimeAPI.classes.EmailUtil import EmailUtil
 from django.core.exceptions import ObjectDoesNotExist
@@ -60,11 +60,15 @@ class DocumentSerializer(ModelSerializer):
     file_type = DocumentFileTypeSerializer(many=False, read_only=True)
     type = DocumentTypeSerializer(many=False, read_only=True)
     status = DocumentStatusSerializer(many=False, read_only=True)
+    document = serializers.SerializerMethodField('prepend_host', source='document')
 
     class Meta:
         model = Document
         read_only_fields = ('status', 'type',)
         fields = ('id', 'status', 'name', 'document', 'inserted', 'type', 'size', 'file_type',)
+
+    def prepend_host(self, obj):
+        return '{0}{1}{2}'.format(ENGINE_HOSTNAME_URL, MEDIA_URL, obj.document)
 
 
 class NameTypeSerializer(ModelSerializer):

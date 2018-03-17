@@ -14,6 +14,7 @@ import datetime
 class UserProfile(models.Model):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     about = models.TextField(null=True, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
     objects = models.Manager()
 
     def __str__(self):

@@ -50,7 +50,7 @@ if 'dev' in environ['DJANGO_SERVER_TYPE'].lower():
     LOCAL_HOST_AND_PORT = LOCAL_HOST + str(LOCAL_HOST_PORT)
 
     ENGINE_HOSTNAME_AND_PORT = ENGINE_HOSTNAME + ":" + str(ENGINE_PORT)
-    ENGINE_HOSTNAME_URL = SECURE + ENGINE_HOSTNAME + ":" + str(ENGINE_PORT)
+    ENGINE_HOSTNAME_URL = UNSECURE + ENGINE_HOSTNAME + ":" + str(ENGINE_PORT)
 
     EMAIL_LOGIN_URL = WEBSITE_HOSTNAME_URL + '/auth/login'
     WELCOME_EMAIL_LOGIN = WEBSITE_HOSTNAME_URL + '/login'
@@ -102,7 +102,7 @@ ALLOWED_HOSTS = [ENGINE_HOSTNAME]
 #     'DimeCoins',
 INSTALLED_APPS = [
     'DimeAPI',
-
+'DimeCoins',
     'reset_migrations',
     'corsheaders',
     'oauth2_provider',

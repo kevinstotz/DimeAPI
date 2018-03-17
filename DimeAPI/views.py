@@ -116,17 +116,17 @@ class UserDocuments(mixins.DestroyModelMixin, mixins.RetrieveModelMixin, generic
     model = Document
     serializer_class = DocumentSerializer
     parser_classes = (JSONParser,)
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     queryset = Document.objects.all()
 
     def get(self, request, *args, **kwargs):
-        user = self.request.user
-        s2 = DocumentSerializer(instance=Document.objects.filter(user=user.user_profile), many=True)
+        s2 = DocumentSerializer(instance=Document.objects.filter(user=self.request.user.user_profile), many=True)
         return Response(json.loads(json.dumps(s2.data)), content_type="application/json")
 
     def delete(self, request, pk, format=None):
         document = self.get_object()
-        document.delete()
+        if document.user == self.request.user.user_profile:
+            document.delete()
         return Response(ReturnResponse.Response(0, __name__, "deleted", 0).return_json(),
                         status=status.HTTP_204_NO_CONTENT)
 
