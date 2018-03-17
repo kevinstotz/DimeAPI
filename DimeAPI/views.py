@@ -275,7 +275,7 @@ class ReadHistory(generics.ListAPIView):
 class DocumentUpload(views.APIView):
     model = Document
     parser_classes = (FileUploadParser, )
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, filename, format=None):
         file_obj = request.data['file']
@@ -285,6 +285,7 @@ class DocumentUpload(views.APIView):
         document.file_type = FileType.objects.get(pk=1)
         document.status = DocumentStatus.objects.get(pk=DOCUMENT_STATUS['READY_TO_VERIFY'])
         document.type = DocumentType.objects.get(pk=file_obj.name[:file_obj.name.index('_')])
+        document.user = self.request.user.user_profile
         document.save()
         return Response(ReturnResponse.Response(1, __name__, 'success', "u").return_json(),
                         status=status.HTTP_201_CREATED)
