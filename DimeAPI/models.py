@@ -211,7 +211,7 @@ class DocumentStatus(models.Model):
         return '%s' % self.status
 
     class Meta:
-        ordering = ('id',)
+        ordering = ('id', 'status',)
 
 
 class DocumentType(models.Model):
@@ -223,7 +223,7 @@ class DocumentType(models.Model):
         return '%s' % self.type
 
     class Meta:
-        ordering = ('type',)
+        ordering = ('id', 'type',)
 
 
 class FileType(models.Model):
@@ -270,14 +270,11 @@ class Document(models.Model):
     modified = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
     objects = models.Manager()
 
-
     def __str__(self):
         return '%s' % self.type
 
     class Meta:
         ordering = ('id', 'type', 'document', 'user', 'status')
-
-
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):

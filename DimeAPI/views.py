@@ -1,6 +1,8 @@
-import logging
-import json
+import json, re, logging
+from django.core.serializers.json import json, DjangoJSONEncoder
+from django.http import JsonResponse
 from django.core.files.storage import FileSystemStorage
+from rest_framework import mixins
 from rest_framework import serializers
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -10,7 +12,7 @@ from rest_framework import serializers
 from rest_framework.mixins import CreateModelMixin
 from oauth2_provider.views.generic import ProtectedResourceView
 from datetime import datetime, timedelta
-from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, \
+from DimeAPI.settings.base import REGISTER_STATUS, DASHBOARD_HOSTNAME_URL, DOCUMENT_STATUS, DOCUMENT_TYPE, \
     EMAIL_ADDRESS_STATUS, USER_STATUS, NAME_TYPE, AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS, XCHANGE, EMAIL_ADDRESS_TYPE
 from DimeAPI.models import CustomUser, Register, RegisterStatus, DimeFund, \
     NewsLetter, UserStatus, EmailAddressStatus, EmailAddress, NameType, Name, DimeHistory, EmailAddressType,  \
@@ -110,17 +112,23 @@ class DimeLineChart(generics.ListAPIView):
     filter_fields = ('xchange',)
 
 
-
-class UserDocuments(generics.ListAPIView):
+class UserDocuments(mixins.DestroyModelMixin, mixins.RetrieveModelMixin, generics.GenericAPIView):
     model = Document
     serializer_class = DocumentSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
     queryset = Document.objects.all()
 
-    def get_queryset(self):
+    def get(self, request, *args, **kwargs):
         user = self.request.user
-        return self.queryset.filter(user=user)
+        s2 = DocumentSerializer(instance=Document.objects.filter(user=user.user_profile), many=True)
+        return Response(json.loads(json.dumps(s2.data)), content_type="application/json")
+
+    def delete(self, request, pk, format=None):
+        document = self.get_object()
+        document.delete()
+        return Response(ReturnResponse.Response(0, __name__, "deleted", 0).return_json(),
+                        status=status.HTTP_204_NO_CONTENT)
 
 
 class DocumentTypes(generics.ListAPIView):
@@ -270,38 +278,15 @@ class DocumentUpload(views.APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request, filename, format=None):
-        print(request.data['file'])
         file_obj = request.data['file']
-        #  print(request.FILES)
-        #  myfile = request.data['file']
-        #  fs = FileSystemStorage()
-        #  filename = fs.save(request.data['file'], myfile)
         document = Document()
         document.document = file_obj
+        document.name = file_obj.name
         document.file_type = FileType.objects.get(pk=1)
-        document.status = DocumentStatus.objects.get(pk=1)
-        document.type = DocumentType.objects.get(pk=1)
+        document.status = DocumentStatus.objects.get(pk=DOCUMENT_STATUS['READY_TO_VERIFY'])
+        document.type = DocumentType.objects.get(pk=file_obj.name[:file_obj.name.index('_')])
         document.save()
         return Response(ReturnResponse.Response(1, __name__, 'success', "u").return_json(),
-                        status=status.HTTP_201_CREATED)
-
-        try:
-            serializer.is_valid(raise_exception=True)
-        except serializers.ValidationError as error:
-            result = '{0}:'.format(error)
-            logger.error(result)
-            logger.error(serializer.errors)
-            return Response(ReturnResponse.Response(1, __name__, 'Exists', result).return_json(),
-                            status=status.HTTP_400_BAD_REQUEST)
-        except Exception as error:
-            result = 'Failed parsing JSon:{0}'.format(request)
-            logger.error(result)
-            logger.error(error)
-            return Response(ReturnResponse.Response(1, __name__, 'Failed parsing Json', result).return_json(),
-                            status=status.HTTP_400_BAD_REQUEST)
-        result = "f"
-        logger.debug(result)
-        return Response(ReturnResponse.Response(1, __name__, 'success', result).return_json(),
                         status=status.HTTP_201_CREATED)
 
 

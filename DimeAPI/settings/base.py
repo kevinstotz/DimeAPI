@@ -445,7 +445,18 @@ PASSWORD_STATUS = {
     'FAILED': 4,
     'SUCCESS': 5
 }
-
+DOCUMENT_STATUS = {
+    'READY_TO_VERIFY': 1,
+    'VERIFIED': 2,
+    'UNREADABLE': 3,
+    'FAILED': 4
+}
+DOCUMENT_TYPE = {
+    'PASSPORT': 1,
+    'STATE_ID': 2,
+    'UTILITY_BILL': 3,
+    'OTHER': 4
+}
 EMAIL_ADDRESS_TYPE = {
     'PRIMARY': 1,
     'SECONDARY': 2

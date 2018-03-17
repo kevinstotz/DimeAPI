@@ -5,7 +5,7 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from DimeAPI.models import Register, RegisterStatus, CustomUser, DimeFund, NewsLetter, UserAgent, EmailAddressType, PhoneNumber, PhoneNumberType, UserProfile, \
      Currency, DimeHistory, Notification, ContactUsForm, DimePeriod, Xchange, Affiliate, Name, NameType, EmailAddress, State, City, Country, Address, ZipCode, \
-     Document, DocumentType, DocumentStatus
+     Document, DocumentType, DocumentStatus, FileType
 from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH, XCHANGE
 from DimeAPI.classes.UserUtil import get_authorization_code
 from DimeAPI.classes.EmailUtil import EmailUtil
@@ -42,6 +42,13 @@ class DocumentTypeSerializer(ModelSerializer):
         fields = ('id', 'type',)
 
 
+class DocumentFileTypeSerializer(ModelSerializer):
+
+    class Meta:
+        model = FileType
+        fields = ('id', 'type',)
+
+
 class DocumentStatusSerializer(ModelSerializer):
 
     class Meta:
@@ -50,20 +57,14 @@ class DocumentStatusSerializer(ModelSerializer):
 
 
 class DocumentSerializer(ModelSerializer):
-    type = DocumentTypeSerializer()
-    status = DocumentStatusSerializer()
+    file_type = DocumentFileTypeSerializer(many=False, read_only=True)
+    type = DocumentTypeSerializer(many=False, read_only=True)
+    status = DocumentStatusSerializer(many=False, read_only=True)
 
     class Meta:
         model = Document
-        read_only_fields = ('status', 'name', 'type',)
-        fields = ('id', 'status', 'name', 'type', 'size',)
-
-
-class DocumentSerializer(ModelSerializer):
-
-    class Meta:
-        model = Document
-        fields = ('status', 'name', 'type', )
+        read_only_fields = ('status', 'type',)
+        fields = ('id', 'status', 'name', 'document', 'inserted', 'type', 'size', 'file_type',)
 
 
 class NameTypeSerializer(ModelSerializer):
@@ -71,7 +72,6 @@ class NameTypeSerializer(ModelSerializer):
     class Meta:
         model = NameType
         fields = ('id', 'type',)
-
 
 
 class ZipCodeSerializer(ModelSerializer):

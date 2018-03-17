@@ -13,16 +13,20 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls.static import static
+from django.urls import register_converter
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url
 from django.conf.urls import include
+from DimeAPI.converters import FileNameConverter
 from two_factor.admin import AdminSiteOTPRequired
 from DimeAPI.views import LoginUser, RegisterUser, ReadHistory, NewsLetterSubscribe, RegisterAffiliate, UserProfileView, CountryView, CityView, StateView, ZipCodeView, \
     VerifyRegister, ContactUs, DimeLineChart, DimePieChart, DimeTableChart, IndexPage, ForgotPassword, ResetPassword, LogoutUser, GetUserId, DimeTableListChart, DocumentUpload, \
     CoinNews, DocumentTypes, UserDocuments
+from DimeAPI.settings.base import MEDIA_ROOT, MEDIA_URL
 
-
+register_converter(FileNameConverter, 'filenamePattern')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,17 +37,17 @@ urlpatterns = [
     path(r'api/dime/tablelistchart/', DimeTableListChart.as_view(), name="dimeTableListChart"),
     path(r'api/dime/coinnews/', CoinNews.as_view(), name="coinNews"),
 
-
     path(r'history/index', ReadHistory.as_view(), name="readHistory"),
     path(r'api/newsletter/', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
     path(r'api/contactus/', ContactUs.as_view(), name="contactus"),
     path(r'api/register/', RegisterUser.as_view({"post": "create"}), name="registerUser"),
     path(r'api/affiliate/register/', RegisterAffiliate.as_view({"post": "create"}), name="registerAffiliate"),
     path(r'account/login/', LoginUser.as_view(), name="loginUser"),
-    path(r'api/account/documentupload/<slug:filename>/', DocumentUpload.as_view(), name="documentUpload"),
+    path(r'api/account/documentupload/<filenamePattern:filename>/', DocumentUpload.as_view(), name="documentUpload"),
 
     path(r'api/account/documenttypes/', DocumentTypes.as_view(), name="documentTypes"),
     path(r'api/account/documents/', UserDocuments.as_view(), name="userDocuments"),
+    path(r'api/account/document/<int:pk>', UserDocuments.as_view(), name="deleteDocuments"),
 
     path(r'api/account/', GetUserId.as_view(), name="getUserId"),
     path(r'api/register/verify/<slug:Authorization_Code>', VerifyRegister.as_view(), name="verifyRegisterUser"),
@@ -60,6 +64,6 @@ urlpatterns = [
     path(r'', IndexPage.as_view(), name="indexPage"),
     # path(r'^auth/status/(?P<User_Id>([0-9]+))$', UserLoginStatus.as_view(), name="userLoginStatus"),
 
-]
+] + static(MEDIA_URL, document_root=MEDIA_ROOT)
 # admin.site.__class__ = AdminSiteOTPRequired
 admin.autodiscover()
