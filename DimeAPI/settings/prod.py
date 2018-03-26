@@ -1,15 +1,13 @@
-from os.path import join
-from os import environ
 from DimeAPI.settings.base import *
 
 
 SECRET_KEY = environ['SECRET_KEY']
-ROOT_URLCONF='DimeAPI.urls'
+ROOT_URLCONF = 'DimeAPI.urls'
 ALLOWED_HOSTS = ['*']
 
 DATABASES = {
     'default': {
-        'NAME' : 'DimeAPI',
+        'NAME': 'DimeAPI',
         'ENGINE': 'django.db.backends.mysql',
         'HOST': 'dev.cdt994n5tnkz.us-west-2.rds.amazonaws.com',
         'PORT': '3306',

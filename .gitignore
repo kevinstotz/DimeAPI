@@ -5,7 +5,6 @@
 ;;
 
 ;;files to ignore
-
 local.py
 ;;extensions to ignore
 *.log
@@ -14,3 +13,5 @@ local.py
 
 ;;directories to ignore
 .idea/
+migrations/
+media/

@@ -1,5 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from DimeAPI.models import Xchange, DimeFund, DimePeriod, DimeHistory
+from DimeAPI.models import Xchange, UD10Fund, UD10Period, UD10History
 from django.core.management.base import BaseCommand
 from DimeAPI.settings.base import XCHANGE
 from datetime import datetime, timedelta
@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
-        periods = DimePeriod.objects.all().order_by('start_date')[15:]
+        periods = UD10Period.objects.all().order_by('start_date')[15:]
         for period in periods:
             start_date = rebalance_date = period.start_date
             end_date = period.end_date
@@ -20,13 +20,13 @@ class Command(BaseCommand):
                 end_date = datetime.utcnow().date()
             while start_date < end_date:
 
-                dimeindex = DimeFund.objects.filter(rebalance_date=rebalance_date)
+                ud10Fund = UD10Fund.objects.filter(rebalance_date=rebalance_date)
                 running_total = 0.0
-                for coin in dimeindex:
+                for coin in ud10Fund:
                     try:
                         coin_class = apps.get_model(app_label='DimeCoins', model_name=coin.currency.symbol)
-                    except:
-                        pass
+                    except Exception as error:
+                        print(error)
                     try:
                         xchange_model = apps.get_model('DimeCoins', 'Xchange')
                         xchange_mod = xchange_model.objects.using('coins').get(pk=xchange.pk)
@@ -40,16 +40,15 @@ class Command(BaseCommand):
 
                     running_total = running_total + float(coin.amount) * float(index.close)
 
-
                 try:
-                    dimeHistory = DimeHistory.objects.get(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
-                    dimeHistory.value = running_total
-                    dimeHistory.save()
+                    ud10History = UD10History.objects.get(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
+                    ud10History.value = running_total
+                    ud10History.save()
 
                 except ObjectDoesNotExist:
-                    dimeHistory = DimeHistory(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
-                    dimeHistory.value = running_total
-                    dimeHistory.save()
+                    ud10History = UD10History(time=int(calendar.timegm(start_date.timetuple())), xchange=xchange)
+                    ud10History.value = running_total
+                    ud10History.save()
 
                 except MultipleObjectsReturned:
                     print("found multiple entries for: {0} {1}".format(int(calendar.timegm(start_date.timetuple())), xchange.pk))

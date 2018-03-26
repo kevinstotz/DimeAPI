@@ -21,6 +21,11 @@ WEBSITE_PORT = ''
 DASHBOARD_HOSTNAME = ''
 ENGINE_PORT = ''
 DASHBOARD_IP_ADDRESS = ''
+ENGINE_HOSTNAME_URL = ''
+LOCAL_HOST_AND_PORT = ''
+WEBSITE_HOSTNAME_AND_PORT = ''
+DASHBOARD_HOSTNAME_AND_PORT = ''
+ENGINE_HOSTNAME_AND_PORT = ''
 
 if 'dev' in environ['DJANGO_SERVER_TYPE'].lower():
     DEBUG = True
@@ -87,7 +92,7 @@ if 'prod' in environ['DJANGO_SERVER_TYPE'].lower():
     LOCAL_HOST_PORT = 10004
     LOCAL_HOST_AND_PORT = LOCAL_HOST + str(LOCAL_HOST_PORT)
 
-    ENGINE_HOSTNAME_NO_PORT =  SECURE + ENGINE_HOSTNAME
+    ENGINE_HOSTNAME_NO_PORT = SECURE + ENGINE_HOSTNAME
     ENGINE_HOSTNAME_AND_PORT = ENGINE_HOSTNAME + ":" + str(ENGINE_PORT)
     ENGINE_HOSTNAME_URL = SECURE + ENGINE_HOSTNAME + ":" + str(ENGINE_PORT)
 
@@ -95,27 +100,26 @@ if 'prod' in environ['DJANGO_SERVER_TYPE'].lower():
     WELCOME_EMAIL_LOGIN = SECURE + WEBSITE_HOSTNAME + '/login'
     EMAIL_VERIFY_ACCOUNT_URL = SECURE + WEBSITE_HOSTNAME + '/register/verify/'
     EMAIL_VERIFY_TRACK_URL = SECURE + WEBSITE_HOSTNAME + '/api/statistics/track.png?auth='
-    FORGOT_PASSWORD_URL = SECURE +  WEBSITE_HOSTNAME + '/forgotpassword/'
+    FORGOT_PASSWORD_URL = SECURE + WEBSITE_HOSTNAME + '/forgotpassword/'
     PASSWORD_RESET_URL = SECURE + WEBSITE_HOSTNAME + '/resetpassword/'
 
-ALLOWED_HOSTS = [ENGINE_HOSTNAME]
+ALLOWED_HOSTS = [ENGINE_HOSTNAME, 'dev2.dime.yogishouse.com', 'dev.dime.yogishouse.com']
+
 
 # Application definition
 #     'DimeCoins',
+# 'django_otp',
+# 'django_otp.plugins.otp_totp',
+# 'django_otp.plugins.otp_static',
+# 'django_otp.plugins.otp_static',
 INSTALLED_APPS = [
     'DimeAPI',
-
-    'reset_migrations',
     'corsheaders',
-    'oauth2_provider',
     'rest_framework',
-    'django_otp',
-    'django_otp.plugins.otp_static',
-    'django_otp.plugins.otp_totp',
-    'two_factor',
-    'web3',
-    'django_user_agents',
     'django.contrib.admin',
+    'django_user_agents',
+    'two_factor',
+    'oauth2_provider',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -138,6 +142,9 @@ MIDDLEWARE = [
 ]
 
 # 'django_otp.middleware.OTPMiddleware',
+
+PAYPAL_CANCEL_URL = ENGINE_HOSTNAME_URL + "/api/payments/paypal/cancel/"
+PAYPAL_RETURN_URL = ENGINE_HOSTNAME_URL + "/api/payments/paypal/"
 
 SECURE_HSTS_INCLUDE_SUBDOMAINS = 'True'
 TWO_FACTOR_PATCH_ADMIN = False
@@ -310,7 +317,12 @@ DATABASES = {
 
 OAUTH2_PROVIDER = {
     'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
-    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'}
+    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'},
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
+    'REFRESH_TOKEN_EXPIRE_SECONDS': 36000,
+    'ROTATE_REFRESH_TOKEN': False,
+    'OAUTH_SINGLE_ACCESS_TOKEN': False,
+    'OAUTH_DELETE_EXPIRED': True
 }
 
 REST_FRAMEWORK = {
@@ -337,6 +349,7 @@ REST_FRAMEWORK = {
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
 AUTH_USER_MODEL = 'DimeAPI.CustomUser'
 
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -359,7 +372,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = False
 
-MEDIA_URL  = '/media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = join(BASE_DIR, 'media')
 GEOIP_PATH = join(PROJECT_DIR, 'assets')
 GOOGLE_MAPS_API_KEY = 'AIzaSyCdQe4RDmD4pYXiYJihZf90s-8tdQX4EwU'
@@ -389,7 +402,7 @@ EMAIL_LENGTH = 100
 
 EMAIL_TEMPLATE_DIR = join(PROJECT_NAME, "EmailTemplates")
 EMAIL_FROM_DOMAIN = 'yogishouse.com'
-
+NONCE_LENGTH=50
 AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS = 60 * 60 * 24  # 1 day
 #  User Status
 USER_STATUS = {
@@ -409,6 +422,12 @@ REGISTER_STATUS = {
     'EXPIRED': 5,
     'VERIFY': 6,
     'RECEIVED': 7
+}
+
+#  Payment Gateways
+PAYMENT_GATEWAYS = {
+    'BRAINTREE': 1,
+    'PAYPAL': 2,
 }
 
 #  Name types
@@ -469,6 +488,42 @@ PASSWORD_RESET_STATUS = {
     'EXPIRED': 2,
     'CLICKED': 3,
     'FINISHED': 4
+}
+#  Withdraw Status
+WITHDRAW_STATUS = {
+    'SETTLED': 1,
+    'AUTHORIZED': 2,
+    'DECLINED': 3,
+    'PENDING': 4
+}
+#  Withdraw Type
+WITHDRAW_TYPE = {
+    'PAYPAL': 1,
+    'VISA': 2,
+    'MASTERCARD': 3,
+    'AMEX': 4,
+    'VENMO': 5,
+    'BITCOIN': 6,
+    'ETHER': 7,
+    'LITECOIN': 8
+}
+#  Deposit Status
+DEPOSIT_STATUS = {
+    'SETTLED': 1,
+    'AUTHORIZED': 2,
+    'DECLINED': 3,
+    'PENDING': 4
+}
+#  Deposit Type
+DEPOSIT_TYPE = {
+    'PAYPAL': 1,
+    'VISA': 2,
+    'MASTERCARD': 3,
+    'AMEX': 4,
+    'VENMO': 5,
+    'BITCOIN': 6,
+    'ETHER': 7,
+    'LITECOIN': 8
 }
 #  Phone number Type
 PHONE_NUMBER_TYPE = {

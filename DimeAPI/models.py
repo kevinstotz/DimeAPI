@@ -1,14 +1,13 @@
 from __future__ import unicode_literals
 import uuid
+import datetime
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from DimeAPI.settings.base import EMAIL_LENGTH, ADDRESS_LENGTH, FIRST_NAME_LENGTH, \
     LAST_NAME_LENGTH, AUTHORIZATION_CODE_LENGTH, EMAIL_TEMPLATE_DIR, CURRENCY_NAME_LENGTH, \
-    COIN_SYMBOL_LENGTH, COIN_NAME_LENGTH, COIN_FULL_NAME_LENGTH, PASSWORD_LENGTH, AUTH_USER_MODEL
+    COIN_SYMBOL_LENGTH, COIN_NAME_LENGTH, COIN_FULL_NAME_LENGTH, PASSWORD_LENGTH, AUTH_USER_MODEL, NONCE_LENGTH
 from .managers import UserManager
-from DimeAPI.classes.UnixEpoch import UnixEpochDateTimeField
-import datetime
 
 
 class UserProfile(models.Model):
@@ -19,6 +18,382 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return '%s' % self.pk
+
+    class Meta:
+        ordering = ('id',)
+
+
+class PaymentGateway(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, default="NA", blank=False)
+    username = models.CharField(max_length=100, default="NA", blank=False)
+    password = models.CharField(max_length=100, default="NA", blank=False)
+    transaction_flat_fee = models.FloatField(default=0.0, blank=False)
+    transaction_percentage_fee = models.FloatField(default=0.0, blank=False)
+    public_key = models.CharField(max_length=255, default="NA", blank=False)
+    client_id = models.CharField(max_length=255, default="NA", blank=False)
+    client_secret = models.CharField(max_length=255, default="NA", blank=False)
+    private_key = models.CharField(max_length=255, default="NA", blank=False)
+    token_key = models.CharField(max_length=255, default="NA", blank=False)
+    encryption_key = models.TextField(default="NA", blank=False)
+    merchant_id = models.CharField(max_length=255, default="NA", blank=False)
+    environment = models.CharField(max_length=100, default="NA", blank=False)
+    api_url = models.CharField(max_length=255, default="NA", blank=False)
+    api_key = models.CharField(max_length=255, default="NA", blank=False)
+    active = models.BooleanField(default=False, verbose_name="Active Payment Gateway")
+
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.name
+
+    class Meta:
+        ordering = ('name',)
+
+
+class PaypalTransactionResourceAmount(models.Model):
+    total = models.FloatField(default=0.0, blank=False)
+    currency = models.CharField(max_length=10, default="NA", blank=False)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.total
+
+    class Meta:
+        ordering = ('total',)
+
+
+class PaypalTransactionResource(models.Model):
+    id = models.CharField(primary_key=True, max_length=100, default="NA", blank=False)
+    parent_payment = models.CharField(max_length=100, default="NA", blank=False)
+    update_time = models.DateTimeField()
+    create_time = models.DateTimeField()
+    amount = models.ForeignKey(PaypalTransactionResourceAmount,
+                               on_delete=models.PROTECT,
+                               verbose_name="Paypal Transaction Resource Amount",
+                               default=1,
+                               related_name='paypalTransactionResourceAmount')
+    state = models.CharField(max_length=30, default="NA", blank=False)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class PaypalTransaction(models.Model):
+    id = models.CharField(primary_key=True, max_length=100, default="NA", blank=False)
+    create_time = models.DateTimeField()
+    resource_type = models.CharField(max_length=50, default="NA", blank=False)
+    event_type = models.CharField(max_length=100, default="NA", blank=False)
+    summary = models.CharField(max_length=255, default="NA", blank=False)
+    resource = models.ForeignKey(PaypalTransactionResource,
+                                 on_delete=models.PROTECT,
+                                 verbose_name="Paypal Transaction Resource",
+                                 default=1,
+                                 related_name='paypalTransactionResource')
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class BraintreePaypalTransactionDetails(models.Model):
+    id = models.AutoField(primary_key=True)
+    shippingAddress = models.CharField(max_length=40, default="NA", blank=True)
+    email = models.CharField(max_length=EMAIL_LENGTH, default="NA", blank=False)
+    firstName = models.CharField(max_length=FIRST_NAME_LENGTH, default="NA", blank=True)
+    lastName = models.CharField(max_length=FIRST_NAME_LENGTH, default="NA", blank=True)
+    payerId = models.CharField(max_length=20, default="NA", blank=False)
+    countryCode = models.CharField(max_length=6, default="NA", blank=False)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class BraintreePaypalTransaction(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile,
+                                 on_delete=models.PROTECT,
+                                 verbose_name='Userprofile of Paypal Transaction',
+                                 default=1,
+                                 related_name='userProfilePaypalTransaction')
+    nonce = models.CharField(max_length=NONCE_LENGTH, default="NA", blank=False)
+    amount = models.FloatField(default=0.0, blank=True)
+    type = models.CharField(max_length=40, default="NA", blank=False)
+    details = models.ForeignKey(BraintreePaypalTransactionDetails,
+                                 on_delete=models.PROTECT,
+                                 verbose_name='Braintree Paypal Transaction Details',
+                                 default=1,
+                                 related_name='braintreePaypalTransactionDetails')
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+
+class BraintreeVisaMCTransactionDetails(models.Model):
+    id = models.AutoField(primary_key=True)
+    cardType = models.CharField(max_length=40, default="NA", blank=True)
+    lastFour = models.IntegerField(blank=True, default=0)
+    lastTwo = models.IntegerField(blank=True, default=0)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class BraintreeVisaMCTransaction(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile,
+                                 on_delete=models.PROTECT,
+                                 verbose_name='Userprofile of VisaMC Transaction',
+                                 default=1,
+                                 related_name='userProfileVisaMcTransaction')
+    nonce = models.CharField(max_length=NONCE_LENGTH, default="NA", blank=False)
+    amount = models.FloatField(default=0.0, blank=True)
+    type = models.CharField(max_length=30, default="NA", blank=False)
+    details = models.ForeignKey(BraintreeVisaMCTransactionDetails,
+                                 on_delete=models.PROTECT,
+                                 verbose_name='Braintree VisaMC Transaction Details',
+                                 default=1,
+                                 related_name='braintreeVisaMCTransactionDetails')
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class HouseFund(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50, default="NA", blank=False)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.name
+
+    class Meta:
+        ordering = ('name',)
+
+
+class HouseFee(models.Model):
+    id = models.AutoField(primary_key=True)
+    fund = models.ForeignKey(HouseFund,
+                                 on_delete=models.PROTECT,
+                                 verbose_name='House Fund',
+                                 default=1,
+                                 related_name='houseFund')
+    yearly_fee = models.FloatField(default=0.0)
+    yearly_fee_start_date = models.DateTimeField(verbose_name="Date when Yearly Fee Started")
+    performance_fee = models.FloatField(default=0.0)
+    performance_fee_start_date = models.DateTimeField(verbose_name="Date when Performance Fee Started")
+    period_fee = models.FloatField(default=0.0)
+    period_fee_start_date = models.DateTimeField(verbose_name="Date when Yearly Fee Started")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class DepositTransactionStatus(models.Model):
+    id = models.AutoField(primary_key=True)
+    status = models.CharField(max_length=40, verbose_name="Status of Deposit Transaction")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.status
+
+    class Meta:
+        ordering = ('id',)
+
+
+class WithdrawTransactionStatus(models.Model):
+    id = models.AutoField(primary_key=True)
+    status = models.CharField(max_length=40, verbose_name="Status of Withdraw Transaction")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.status
+
+    class Meta:
+        ordering = ('id',)
+
+
+class DepositTransactionType(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.CharField(max_length=40, verbose_name="Deposit Transaction Type")
+    active = models.BooleanField(default=True)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.type
+
+    class Meta:
+        ordering = ('id',)
+
+
+class DepositTransaction(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile,
+                                     on_delete=models.PROTECT,
+                                     verbose_name="User Deposit Transactions",
+                                     default=1,
+                                     related_name='depositTransaction')
+    payment_gateway = models.ForeignKey(PaymentGateway,
+                                        on_delete=models.PROTECT,
+                                        verbose_name="Payment Gateway Transactions",
+                                        default=1,
+                                        related_name='depositPaymentGateway')
+    deposit_id = models.IntegerField(default=1)
+    deposit_type = models.ForeignKey(DepositTransactionType,
+                                     on_delete=models.PROTECT,
+                                     verbose_name="Deposit Type of Transactions",
+                                     default=1,
+                                     related_name='depositTransactionType')
+    deposit_status = models.ForeignKey(DepositTransactionStatus,
+                                       on_delete=models.PROTECT,
+                                       verbose_name="Deposit Status of Transactions",
+                                       default=1,
+                                       related_name='depositTransactionStatus')
+    inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class WithdrawTransactionType(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, default="NA", blank=False)
+    active = models.BooleanField(default=True)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.name
+
+    class Meta:
+        ordering = ('name',)
+
+
+class WithdrawTransaction(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile,
+                                     on_delete=models.PROTECT,
+                                     verbose_name="User Withdraw Transaction",
+                                     default=1,
+                                     related_name='withdrawTransaction')
+    payment_gateway = models.ForeignKey(PaymentGateway,
+                                        on_delete=models.PROTECT,
+                                        verbose_name="Payment gateway of Withdraw Transaction",
+                                        default=1,
+                                        related_name='withdrawPaymentGateway')
+    withdraw_id = models.IntegerField(default=1)
+    withdraw_type = models.ForeignKey(WithdrawTransactionType,
+                                      on_delete=models.PROTECT,
+                                      verbose_name="Withdraw Type",
+                                      default=1,
+                                      related_name='withdrawTransactiontType')
+    withdraw_status = models.ForeignKey(WithdrawTransactionStatus,
+                                        on_delete=models.PROTECT,
+                                        verbose_name="Withdraw Status",
+                                        default=1,
+                                        related_name='withdrawTransactionStatus')
+    inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class DepositTransactionFees(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile,
+                                     on_delete=models.PROTECT,
+                                     verbose_name="User Deposit Transaction Fees",
+                                     default=1,
+                                     related_name='userDepositTransactionFees')
+    house_fund = models.ForeignKey(HouseFund,
+                                   on_delete=models.PROTECT,
+                                   verbose_name='House Fund',
+                                   default=1,
+                                   related_name='depositHouseFund')
+    payment_gateway = models.ForeignKey(PaymentGateway,
+                                        on_delete=models.PROTECT,
+                                        verbose_name='Deposit Gateway Fees',
+                                        default=1,
+                                        related_name='depositTransactionFeesPaymentGateway')
+    deposit = models.ForeignKey(DepositTransaction,
+                                on_delete=models.PROTECT,
+                                verbose_name='Deposit Transaction Fees',
+                                default=1,
+                                related_name='depositTransactionFees')
+    percentage_fee = models.FloatField(default=0.0, blank=False)
+    flat_fee = models.FloatField(default=0.0, blank=False)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class WithdrawTransactionFees(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_profile = models.ForeignKey(UserProfile,
+                                     on_delete=models.PROTECT,
+                                     verbose_name="User Withdraw Transaction Fees",
+                                     default=1,
+                                     related_name='userWithdrawTransactionFees')
+    house_fund = models.ForeignKey(HouseFund,
+                                   on_delete=models.PROTECT,
+                                   verbose_name='House Fund',
+                                   default=1,
+                                   related_name='withdrawtHouseFund')
+    payment_gateway = models.ForeignKey(PaymentGateway,
+                                        on_delete=models.PROTECT,
+                                        verbose_name='Withdraw Gateway Fees',
+                                        default=1,
+                                        related_name='withdrawTransactionFeesPaymentGateway')
+    withdraw = models.ForeignKey(WithdrawTransaction,
+                                 on_delete=models.PROTECT,
+                                 verbose_name='Withdraw Transaction Fees',
+                                 default=1,
+                                 related_name='withdrawTransactionFees')
+    percentage_fee = models.FloatField(default=0.0, blank=False)
+    flat_fee = models.FloatField(default=0.0, blank=False)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
 
     class Meta:
         ordering = ('id',)
@@ -39,7 +414,7 @@ class ZipCode(models.Model):
 class Country(models.Model):
     id = models.AutoField(primary_key=True)
     sort_name = models.CharField(max_length=3, verbose_name="2 letter name", blank=False, default="XX")
-    name = models.CharField(max_length=30, verbose_name="City Name", blank=False, default="XXX")
+    name = models.CharField(max_length=30, verbose_name="Country Name", blank=False, default="XXX")
     phone_code = models.IntegerField(default=0, blank=False)
     objects = models.Manager()
 
@@ -54,8 +429,8 @@ class State(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40, verbose_name="State Name", blank=False, default="XX")
     code = models.CharField(max_length=2, verbose_name="State Code", blank=False, default="XX")
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, default=1)
-    zip_codes = models.ManyToManyField(ZipCode)
+    country = models.ForeignKey(Country, on_delete=models.PROTECT, default=1, verbose_name="State Country")
+    zip_codes = models.ManyToManyField(ZipCode, default=1, related_name="zipcodesStates")
     objects = models.Manager()
 
     def __str__(self):
@@ -68,8 +443,8 @@ class State(models.Model):
 class City(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=30, verbose_name="City Name", blank=False)
-    state = models.ForeignKey(State, on_delete=models.CASCADE, default=1)
-    zip_codes = models.ManyToManyField(ZipCode)
+    state = models.ForeignKey(State, on_delete=models.PROTECT, default=1, verbose_name="State Country")
+    zip_codes = models.ManyToManyField(ZipCode, default=1, related_name="citiesStates")
     objects = models.Manager()
 
     def __str__(self):
@@ -106,6 +481,7 @@ class PasswordResetStatus(models.Model):
 class NotificationType(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=50, verbose_name="Type of Notification")
+    active = models.BooleanField(default=False, verbose_name="Notification Type Active")
     objects = models.Manager()
 
     def __str__(self):
@@ -154,6 +530,7 @@ class EmailAddressStatus(models.Model):
 class EmailAddressType(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=20, verbose_name="Type of Email Address", blank=False, default="1")
+    active = models.BooleanField(default=False, verbose_name="Email address Type Active")
     objects = models.Manager()
 
     def __str__(self):
@@ -166,6 +543,7 @@ class EmailAddressType(models.Model):
 class PhoneNumberType(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=20, verbose_name="Type of Phone Number", blank=False, default="1")
+    active = models.BooleanField(default=False, verbose_name="Phone Number Type Active")
     objects = models.Manager()
 
     def __str__(self):
@@ -177,11 +555,22 @@ class PhoneNumberType(models.Model):
 
 class PhoneNumber(models.Model):
     id = models.AutoField(primary_key=True)
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.PROTECT, verbose_name="Phone Numbers", default=1,
+    user_profile = models.ForeignKey(UserProfile,
+                                     on_delete=models.PROTECT,
+                                     verbose_name="Phone Numbers",
+                                     default=1,
                                      related_name='phoneNumbers')
-    phone_number = models.CharField(max_length=16, verbose_name="Phone Number")
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, default=1)
-    type = models.ForeignKey(PhoneNumberType, on_delete=models.CASCADE, default=1)
+    phone_number = models.CharField(max_length=16, default="0000000000", verbose_name="Phone Number")
+    country = models.ForeignKey(Country,
+                                on_delete=models.PROTECT,
+                                verbose_name="Phone Number Country",
+                                related_name='phoneNumberCountry',
+                                default=1)
+    type = models.ForeignKey(PhoneNumberType,
+                             verbose_name="Phone Number Country",
+                             on_delete=models.PROTECT,
+                             related_name='phoneNumberType',
+                             default=1)
     objects = models.Manager()
 
     def __str__(self):
@@ -194,6 +583,7 @@ class PhoneNumber(models.Model):
 class NameType(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=FIRST_NAME_LENGTH, verbose_name="Type of Name")
+    active = models.BooleanField(default=False, verbose_name="Active Name Type")
     objects = models.Manager()
 
     def __str__(self):
@@ -206,6 +596,7 @@ class NameType(models.Model):
 class DocumentStatus(models.Model):
     id = models.AutoField(primary_key=True)
     status = models.CharField(max_length=20, verbose_name="Status of Document")
+    active = models.BooleanField(default=False, verbose_name="Active Document Status")
     objects = models.Manager()
 
     def __str__(self):
@@ -218,6 +609,7 @@ class DocumentStatus(models.Model):
 class DocumentType(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=20, verbose_name="Type of Document")
+    active = models.BooleanField(default=False, verbose_name="Active File Type")
     objects = models.Manager()
 
     def __str__(self):
@@ -230,6 +622,7 @@ class DocumentType(models.Model):
 class FileType(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=20, verbose_name="Type of Document")
+    active = models.BooleanField(default=False, verbose_name="Active File Type")
     objects = models.Manager()
 
     def __str__(self):
@@ -245,6 +638,7 @@ class MailServer(models.Model):
     password = models.CharField(max_length=PASSWORD_LENGTH, blank=False, verbose_name="password", default="No Name")
     server = models.CharField(max_length=255, blank=False, verbose_name="server name", default="No Name")
     port = models.IntegerField(blank=False, default=465)
+    active = models.BooleanField(default=False, verbose_name="Active Mail Server")
     objects = models.Manager()
 
     def __str__(self):
@@ -256,17 +650,23 @@ class MailServer(models.Model):
 
 def user_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    return '{0}/{1}/user_{2}/{3}'.format('2018','03',instance.user.id, filename)
+    return '{0}/{1}/user_{2}/{3}'.format('2018', '03', instance.user.id, filename)
 
 
 class Document(models.Model):
     name = models.CharField(max_length=255, blank=False, verbose_name="Filename of document", default="No Name")
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, default=1)
-    type = models.ForeignKey(DocumentType, on_delete=models.CASCADE, default=1)
+    user = models.ForeignKey(UserProfile,
+                             on_delete=models.CASCADE,
+                             related_name="documenUser",
+                             default=1)
+    type = models.ForeignKey(DocumentType,
+                             on_delete=models.CASCADE,
+                             related_name="documentType",
+                             default=1)
     document = models.FileField(upload_to=user_directory_path)
-    file_type = models.ForeignKey(FileType, on_delete=models.CASCADE, default=1)
+    file_type = models.ForeignKey(FileType, on_delete=models.CASCADE, default=1, related_name="documentFileType")
     size = models.IntegerField(blank=False, default=0)
-    status = models.ForeignKey(DocumentStatus, on_delete=models.CASCADE, default=1)
+    status = models.ForeignKey(DocumentStatus, on_delete=models.CASCADE, default=1, related_name="documentStatus")
     inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
     modified = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
     objects = models.Manager()
@@ -291,7 +691,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
                                 verbose_name="username of user",
                                 unique=True,
                                 default="Username")
-    status = models.ForeignKey(UserStatus, on_delete=models.CASCADE, default=1)
+    status = models.ForeignKey(UserStatus, on_delete=models.CASCADE, default=1, related_name="customUserStatus",)
     inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
     is_active = models.BooleanField(default=True)
     is_logged_in = models.BooleanField(default=False)
@@ -321,15 +721,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 class Address(models.Model):
     id = models.AutoField(primary_key=True)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.PROTECT, verbose_name="Addresses", default=1,
-                                     related_name='addresses')
+                                     related_name='addressesUserProfile')
     address1 = models.CharField(max_length=255, verbose_name="Address 1", default="")
     address2 = models.CharField(max_length=255, verbose_name="Address 2", default="")
     address3 = models.CharField(max_length=255, verbose_name="Address 3", default="")
-    unit = models.CharField(max_length=20, verbose_name="Unit")
-    zipcode = models.ForeignKey(ZipCode, on_delete=models.CASCADE, default=0, related_name='addresses')
-    city = models.ForeignKey(City, on_delete=models.CASCADE, default=0, related_name='addresses')
-    state = models.ForeignKey(State, on_delete=models.CASCADE, default=0, related_name='addresses')
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, default=0, related_name='addresses')
+    unit = models.CharField(max_length=20, verbose_name="Unit", default="")
+    zipcode = models.ForeignKey(ZipCode, on_delete=models.PROTECT, default=1, related_name='addressesZipcode')
+    city = models.ForeignKey(City, on_delete=models.PROTECT, default=1, related_name='addressesCity')
+    state = models.ForeignKey(State, on_delete=models.PROTECT, default=1, related_name='addressesState')
+    country = models.ForeignKey(Country, on_delete=models.PROTECT, default=1, related_name='addressesCountry')
     objects = models.Manager()
 
     def __str__(self):
@@ -485,7 +885,7 @@ class Currency(models.Model):
     symbol = models.CharField(max_length=COIN_SYMBOL_LENGTH, default="")
     coinName = models.CharField(max_length=COIN_NAME_LENGTH, default="")
     fullName = models.CharField(max_length=COIN_FULL_NAME_LENGTH, default="")
-
+    active = models.BooleanField(default=False, verbose_name="Active Currency")
     objects = models.Manager()
 
     def __str__(self):
@@ -509,7 +909,7 @@ class XchangeCurrency(models.Model):
 
 
 class NewsLetter(models.Model):
-    email = models.EmailField(max_length=EMAIL_LENGTH, default="noemail@thedime.fund", primary_key=True)
+    email = models.EmailField(max_length=EMAIL_LENGTH, default="noemail@yogishouse.com", primary_key=True)
     timestamp = models.BigIntegerField(default=0)
 
     objects = models.Manager()
@@ -521,7 +921,7 @@ class NewsLetter(models.Model):
         ordering = ('email', )
 
 
-class DimePeriod(models.Model):
+class UD10Period(models.Model):
     id = models.AutoField(primary_key=True)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -553,21 +953,22 @@ class Vendor(models.Model):
         ordering = ('id', 'name',)
 
 
-class DimeFund(models.Model):
+class UD10Fund(models.Model):
     id = models.AutoField(primary_key=True)
     currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
     rebalance_date = models.DateField(default=datetime.date.today)
-    period = models.ForeignKey(DimePeriod, on_delete=models.SET_DEFAULT, default=1)
+    period = models.ForeignKey(UD10Period, on_delete=models.SET_DEFAULT, default=1)
     rank = models.IntegerField(default=0)
     level = models.FloatField(default=0.0)
     rebalance_price = models.FloatField(default=0.0)
     market_cap = models.BigIntegerField(default=0)
     available_supply = models.BigIntegerField(default=0)
-    percent_of_dime = models.FloatField(default=0.0)
+    percent_of = models.FloatField(default=0.0)
     amount = models.FloatField(default=0.0)
     rebalance_value = models.FloatField(default=0.0)
     end_price = models.FloatField(default=0.0)
     end_value = models.FloatField(default=0.0)
+
     objects = models.Manager()
 
     def __str__(self):
@@ -577,7 +978,7 @@ class DimeFund(models.Model):
         ordering = ('id',)
 
 
-class DimeHistory(models.Model):
+class UD10History(models.Model):
     id = models.AutoField(primary_key=True)
     time = models.BigIntegerField(default=0, verbose_name="Close Date")
     value = models.FloatField(default=0.0)
@@ -602,7 +1003,7 @@ class UserAgent(models.Model):
     cookiesEnabled = models.BooleanField(default=True, verbose_name="cookies")
     language = models.CharField(max_length=30, blank=True, null=True, default='Unknown', verbose_name="language")
     platform = models.CharField(max_length=255, blank=True, null=True,
-                                       default='Unknown', verbose_name="platform")
+                                default='Unknown', verbose_name="platform")
     inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
 
     objects = models.Manager()
@@ -647,12 +1048,12 @@ class Register(models.Model):
     lastName = models.CharField(max_length=LAST_NAME_LENGTH, verbose_name="Last Name of Register")
     zipCode = models.CharField(max_length=10, verbose_name="Zip Code of Register", default="00000")
     ipAddress = models.GenericIPAddressField(blank=True, null=True, verbose_name="IP Address of Register")
-    userAgent = models.ForeignKey(UserAgent, on_delete=models.CASCADE)
+    userAgent = models.ForeignKey(UserAgent, on_delete=models.CASCADE, default=1, verbose_name="User Agent of User")
     authorizationCode = models.CharField(max_length=AUTHORIZATION_CODE_LENGTH,
                                          blank=False,
                                          verbose_name="Auto Generated Auth Code")
     inserted = models.DateTimeField(auto_now_add=True, verbose_name="Date of Registration")
-    status = models.ForeignKey(RegisterStatus, on_delete=models.PROTECT, default=1)
+    status = models.ForeignKey(RegisterStatus, on_delete=models.PROTECT, default=1, verbose_name="Status of Registered User")
     objects = models.Manager()
 
     def __str__(self):
@@ -679,4 +1080,3 @@ class ContactUsForm(models.Model):
 
     class Meta:
         ordering = ('id',)
-
