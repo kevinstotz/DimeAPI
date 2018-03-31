@@ -1,51 +1,92 @@
-from DimeAPI.settings.base import XCHANGE
-from DimeAPI.models import UD10Fund, UD10History, UD10Period
-from DimeAPI.serializer import UD10TableChartSerializer, UD10HistorySerializer, UD10PieChartSerializer, \
-    UD10RebalanceDateValueSerializer, UD10TableListChartSerializer
+from DimeAPI.models import Fund, FundHistory, FundRebalanceDate, FundCurrency
+from DimeAPI.serializer import FundTableChartSerializer, FundLineChartSerializer, FundPieChartSerializer, \
+    FundRebalanceDateValueSerializer, FundTableListChartSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import JSONParser
 
 
-class UD10LineChart(generics.ListAPIView):
-    model = UD10History
-    serializer_class = UD10HistorySerializer
+class FundLineChart(generics.ListAPIView):
+    model = FundHistory
+    serializer_class = FundLineChartSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = UD10History.objects.all().filter(xchange=XCHANGE['COIN_MARKET_CAP'])
+    queryset = FundHistory.objects.all()
     filter_backends = (DjangoFilterBackend,)
     ordering = ('name',)
-    filter_fields = ('xchange',)
+
+    def get_queryset(self):
+        try:
+            fund = Fund.objects.get(pk=self.kwargs['pk'])
+            return FundHistory.objects.filter(fund=fund).order_by('time')
+        except Exception as error:
+            print(error)
+            return
 
 
-class UD10RebalanceDateValue(generics.ListAPIView):
-    model = UD10Period
-    serializer_class = UD10RebalanceDateValueSerializer
+class FundRebalanceDateValue(generics.ListAPIView):
+    model = FundRebalanceDate
+    serializer_class = FundRebalanceDateValueSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = UD10Period.objects.all()[1:]
+    queryset = FundRebalanceDate.objects.all()
+
+    def get_queryset(self):
+        try:
+            fund = Fund.objects.get(pk=self.kwargs['pk'])
+            return FundRebalanceDate.objects.filter(fund=fund).order_by('+start_date')
+        except Exception as error:
+            print(error)
+            return
 
 
-class UD10PieChart(generics.ListAPIView):
-    model = UD10Fund
-    serializer_class = UD10PieChartSerializer
+
+class FundPieChart(generics.ListAPIView):
+    model = FundCurrency
+    serializer_class = FundPieChartSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = UD10Fund.objects.filter(rebalance_date='2018-02-23')
+    queryset = FundCurrency.objects.all()
+
+    def get_queryset(self):
+        try:
+            fund = Fund.objects.get(pk=self.kwargs['pk'])
+            rebalance_date = FundRebalanceDate.objects.filter(fund=fund).order_by('start_date')[0:1].get()
+            return FundCurrency.objects.all().filter(fund=fund).order_by('-rebalance__start_date')[:rebalance_date.num_of_coins]
+        except Exception as error:
+            print(error)
+            return
 
 
-class UD10TableChart(generics.ListAPIView):
-    model = UD10Fund
-    serializer_class = UD10TableChartSerializer
+class FundTableChart(generics.ListAPIView):
+    model = FundCurrency
+    serializer_class = FundTableChartSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = UD10Fund.objects.filter(rebalance_date='2018-02-23')
+    queryset = FundCurrency.objects.all()
+
+    def get_queryset(self):
+        try:
+            fund = Fund.objects.get(pk=self.kwargs['pk'])
+            rebalance_date = FundRebalanceDate.objects.filter(fund=fund).order_by('start_date')[0:1].get()
+            return FundCurrency.objects.all().filter(fund=fund).order_by('-rebalance__start_date')[:rebalance_date.num_of_coins]
+        except Exception as error:
+            print(error)
+            return
 
 
-class UD10TableListChart(generics.ListAPIView):
-    model = UD10Fund
-    serializer_class = UD10TableListChartSerializer
+class FundTableListChart(generics.ListAPIView):
+    model = FundCurrency
+    serializer_class = FundTableListChartSerializer
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    queryset = UD10Fund.objects.filter(rebalance_date='2018-02-23')
+    queryset = FundCurrency.objects.all()
+
+    def get_queryset(self):
+        try:
+            fund = Fund.objects.get(pk=self.kwargs['pk'])
+            return FundCurrency.objects.all().filter(fund=fund).order_by('-rebalance__start_date')[:10]
+        except Exception as error:
+            print(error)
+            return

@@ -1,19 +1,30 @@
 from django.core.exceptions import ObjectDoesNotExist
 from DimeAPI.models import Xchange
 import json
-from DimeAPI.settings.base import XCHANGE
 import requests
+import logging
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
 
 
 class NewsFeed(object):
     # class variable shared by all instances
-    rss_server = XCHANGE['CRYPTOPANIC']
-    rss_feed = Xchange.objects.get(pk=rss_server)
+    rss_server = None
+    def __init__(self, rss_server):
+        self.rss_server = rss_server
+        try:
+            self.rss_feed = Xchange.objects.get(pk=rss_server)
+        except ObjectDoesNotExist as error:
+            logger.error("{0} not found {1}".format(rss_server, error))
 
     def get_news_feed(self, symbol):
         url = self.rss_feed.api_url + "?auth_token=" + self.rss_feed.api_key + '&currencies=' + symbol
         response = requests.get(url)
-        articles = json.loads(response.text)
+        if response.status_code != 200:
+            return None
+        articles = json.loads(response.content)
 
         articles_array = []
         for idx, article in enumerate(articles['results']):

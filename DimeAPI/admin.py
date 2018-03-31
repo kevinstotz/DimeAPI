@@ -1,6 +1,6 @@
 from django.contrib import admin
-from DimeAPI.models import CustomUser, Register, UserAgent, UD10Fund, UD10Period,  NewsLetter, XchangeCurrency, \
-    Xchange, Currency, Notification, EmailTemplate, EmailAddress, Name, Network, PasswordReset, NameType, \
+from DimeAPI.models import CustomUser, Register, UserAgent, Fund, FundRebalanceDate,  NewsLetter, \
+    Xchange, Notification, EmailTemplate, EmailAddress, Name, Network, PasswordReset, NameType, \
     RegisterStatus, NotificationStatus, EmailAddressStatus, NotificationType, PasswordResetStatus, UserStatus
 
 
@@ -8,10 +8,9 @@ class CustomUserAdmin(admin.ModelAdmin):
     pass
 
 
-admin.site.register(Currency)
 admin.site.register(CustomUser)
-admin.site.register(UD10Fund)
-admin.site.register(UD10Period)
+admin.site.register(Fund)
+admin.site.register(FundRebalanceDate)
 admin.site.register(EmailAddress)
 admin.site.register(EmailAddressStatus)
 admin.site.register(EmailTemplate)
@@ -29,4 +28,4 @@ admin.site.register(RegisterStatus)
 admin.site.register(UserAgent)
 admin.site.register(UserStatus)
 admin.site.register(Xchange)
-admin.site.register(XchangeCurrency)
+

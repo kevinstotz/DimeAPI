@@ -4,13 +4,14 @@ import calendar
 from rest_framework.serializers import ModelSerializer
 
 from rest_framework import serializers
-from DimeAPI.models import Register, RegisterStatus, CustomUser, UD10Fund, NewsLetter, UserAgent, State, \
-     Currency, UD10History, Notification, ContactUsForm, UD10Period, Xchange, Affiliate, Name, NameType, City, \
+
+from DimeAPI.models import Register, RegisterStatus, CustomUser, Fund, NewsLetter, UserAgent, State, \
+     FundHistory, Notification, ContactUsForm, FundRebalanceDate, Xchange, Affiliate, Name, NameType, City, \
      Document, DocumentType, DocumentStatus, FileType, DepositTransaction, PaypalTransactionResourceAmount, \
      PaypalTransaction, BraintreePaypalTransactionDetails, BraintreePaypalTransaction, BraintreeVisaMCTransactionDetails, \
      UserProfile, Address, ZipCode, PaypalTransactionResource, BraintreeVisaMCTransaction, PhoneNumberType, Country, \
      PhoneNumber, EmailAddressType, EmailAddress, DepositTransactionType, DepositTransactionStatus, WithdrawTransaction, \
-     WithdrawTransactionStatus, WithdrawTransactionType
+     WithdrawTransactionStatus, WithdrawTransactionType, FundCurrency, Currency
 
 from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH, XCHANGE, ENGINE_HOSTNAME_NO_PORT, MEDIA_URL, \
     DEPOSIT_TYPE, PAYMENT_GATEWAYS, WITHDRAW_TYPE, DASHBOARD_HOSTNAME_URL
@@ -384,13 +385,13 @@ class UserProfileSerializer(ModelSerializer):
                         'request'].user.user_profile.pk) + "/" +  str(obj.avatar)
 
 
-class UD10HistorySerializer(ModelSerializer):
+class FundHistorySerializer(ModelSerializer):
     name = serializers.SerializerMethodField('ts_to_date', source='time')
     value = serializers.SerializerMethodField('to_currency')
     rebalance = serializers.SerializerMethodField('is_rebalance_date', source='time')
 
     class Meta:
-        model = UD10History
+        model = FundHistory
         fields = ('name', 'value', 'rebalance')
 
     def ts_to_date(self, obj):
@@ -401,7 +402,7 @@ class UD10HistorySerializer(ModelSerializer):
 
     def is_rebalance_date(self, obj):
         try:
-            UD10Period.objects.get(start_date=datetime.utcfromtimestamp(obj.time).strftime('%Y-%m-%d'))
+            FundRebalanceDate.objects.get(start_date=datetime.utcfromtimestamp(obj.time).strftime('%Y-%m-%d'))
         except ObjectDoesNotExist as error:
             return 0
         return 1
@@ -410,72 +411,116 @@ class UD10HistorySerializer(ModelSerializer):
 class CurrencySerializer(ModelSerializer):
 
     class Meta:
-        model = Currency
+        model = Fund
         fields = ('id', 'name', 'symbol', 'coinName', 'fullName',)
 
 
-class UD10RebalanceDateValueSerializer(ModelSerializer):
+class FundRebalanceDateValueSerializer(ModelSerializer):
     name = serializers.DateField(source='start_date')
     value = serializers.SerializerMethodField(source='start_date', method_name='to_value')
 
     class Meta:
-        model = UD10Period
+        model = FundRebalanceDate
         fields = ('name', 'value',)
 
     def to_value(self, obj):
 
         try:
             xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
-            ud10History = UD10History.objects.get(time=int(calendar.timegm(obj.start_date.timetuple())), xchange=xchange)
+            fundHistory = FundHistory.objects.get(time=int(calendar.timegm(obj.start_date.timetuple())), xchange=xchange)
         except Exception as error:
             print(error)
             print("could not get entry in history for {0}".format(int(calendar.timegm(obj.start_date.timetuple()))))
             return 0
-        return '{:.2f}'.format(ud10History.value)
+        return '{:.2f}'.format(fundHistory.value)
 
 
-class CoinNewsSerializer(ModelSerializer):
-    currency = CurrencySerializer()
-
-    class Meta:
-        model = UD10Fund
-        read_only_fields = ('currency',)
-        fields = ('currency', )
-
-
-class UD10PieChartSerializer(ModelSerializer):
-    name = serializers.SlugRelatedField(many=False, read_only=True, source='currency', slug_field='symbol')
-    value = serializers.FloatField(source='percent_of')
+class FundPieChartSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField(source='currency')
+    value = serializers.FloatField(source='percent')
 
     class Meta:
-        model = UD10Fund
+        model = FundCurrency
         fields = ('name', 'value',)
 
+    def get_name(self, obj):
+        try:
+            currency = Currency.objects.using('coins').get(id=obj.currency)
+        except ObjectDoesNotExist as error:
+            print(error)
+            return
+        except Exception as error:
+            print(error)
+            return
+        return currency.symbol
 
-class UD10TableChartSerializer(ModelSerializer):
-    name = serializers.SlugRelatedField(many=False, read_only=True, source='currency', slug_field='symbol')
-    value = serializers.FloatField(source='percent_of')
+
+class FundLineChartSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField(source='time')
+    rebalance = serializers.SerializerMethodField(source='time')
 
     class Meta:
-        model = UD10Fund
-        fields = ('rank', 'name', 'value', 'percent_of', 'market_cap', 'end_price',)
+        model = FundHistory
+        fields = ('name', 'value', 'rebalance')
+
+    def get_name(self, obj):
+        return obj.time
+
+    def get_rebalance(self, obj):
+        try:
+            FundRebalanceDate.objects.get(start_date=obj.time, fund=obj.fund)
+            return 1
+        except ObjectDoesNotExist as error:
+            return 0
+        return 0
 
 
-class UD10TableListChartSerializer(ModelSerializer):
-    currency = CurrencySerializer()
+class FundTableChartSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField(source='currency')
+    value = serializers.FloatField(source='percent')
 
     class Meta:
-        model = UD10Fund
+        model = FundCurrency
+        fields = ('rank', 'name', 'value', 'percent', 'market_cap', 'end_price',)
+
+    def get_name(self, obj):
+        try:
+            currency = Currency.objects.using('coins').get(id=obj.currency)
+        except ObjectDoesNotExist as error:
+            print(error)
+            return
+        except Exception as error:
+            print(error)
+            return
+        return currency.symbol
+
+
+class FundTableListChartSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField(source='currency')
+
+    class Meta:
+        model = FundCurrency
         read_only_fields = ('symbol',)
-        fields = ('rank', 'percent_of', 'rebalance_price', 'end_price', 'currency')
+        fields = ('rank', 'percent', 'rebalance_price', 'end_price', 'name')
+
+    def get_name(self, obj):
+        try:
+            currency = Currency.objects.using('coins').get(id=obj.currency)
+        except ObjectDoesNotExist as error:
+            print(error)
+            return
+        except Exception as error:
+            print(error)
+            return
+        return currency.symbol
 
 
-class UD10PeriodSerializer(ModelSerializer):
+class FundRebalanceDateSerializer(ModelSerializer):
 
     class Meta:
-        model = UD10Fund
-        fields = ('rebalance_price', 'rank', 'level', 'period', 'currency',
-                  'market_cap', 'percent_of', 'amount', 'rebalance_value', 'end_price', 'end_value',)
+        model = FundRebalanceDate
+        fields = ('rebalance_price', 'rank', 'level', 'rebalance_date', 'currency',
+                  'market_cap', 'percent', 'amount', 'rebalance_value', 'end_price', 'end_value',)
 
 
 class NewsLetterSerializer(ModelSerializer):

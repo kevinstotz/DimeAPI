@@ -1,5 +1,6 @@
-from DimeAPI.models import UD10Fund, ContactUsForm, NewsLetter
-from DimeAPI.serializer import ContactUsFormSerializer, CoinNewsSerializer, NewsLetterSerializer
+from DimeAPI.models import Fund, FundCurrency, ContactUsForm, NewsLetter
+from DimeAPI.serializer import ContactUsFormSerializer, NewsLetterSerializer, Currency
+from DimeAPI.settings.base import XCHANGE
 from DimeAPI.classes import ReturnResponse, MyEmail, NewsFeed
 from rest_framework.renderers import JSONRenderer
 from rest_framework import generics, status
@@ -47,16 +48,31 @@ class NewsLetterSubscribe(generics.GenericAPIView):
 
 
 class CoinNews(generics.ListAPIView):
-    model = UD10Fund
-    serializer_class = CoinNewsSerializer
+    model = Fund
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
-        newsfeed = NewsFeed.NewsFeed()
+        try:
+            fund = Fund.objects.get(pk=self.kwargs['pk'])
+        except Exception as error:
+            return Response(ReturnResponse.Response(1, __name__, "Invalid Fund", error).return_json(), status=status.HTTP_200_OK)
+        try:
+            fundCurrency = FundCurrency.objects.filter(fund=fund).order_by('-rebalance__pk')[0:1].get()
+        except Exception as error:
+            return Response(ReturnResponse.Response(2, __name__, "Invalid FundCurrency", error).return_json(), status=status.HTTP_200_OK)
+
+
         news = []
-        for record in UD10Fund.objects.filter(rebalance_date='2018-02-23'):
-            news.append(newsfeed.get_news_feed(record.currency.symbol))
+        newsfeed = NewsFeed.NewsFeed(XCHANGE['CRYPTOPANIC'])
+        for record in FundCurrency.objects.filter(fund=fund).order_by('-rebalance__pk')[:fundCurrency.rebalance.num_of_coins]:
+            try:
+                currency = Currency.objects.using('coins').get(pk=record.currency)
+            except Exception as error:
+                print(error)
+                return Response(ReturnResponse.Response(3, __name__, "No currency", error).return_json(),
+                                status=status.HTTP_200_OK)
+            news.append(newsfeed.get_news_feed(currency.symbol))
         return Response(ReturnResponse.Response(0, __name__, json.dumps(news), 0).return_json(),
                         status=status.HTTP_200_OK)
 

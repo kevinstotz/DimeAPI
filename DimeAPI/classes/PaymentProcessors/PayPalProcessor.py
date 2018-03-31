@@ -62,7 +62,7 @@ class PayPalProcessor:
             print(error)
             print("Webhook Not Found")
 
-    def createPayment(self, currency="USD", name="UD10", sku=1, price="5.00", quantiity=1):
+    def createPayment(self, currency="USD", name="Fund", sku=1, price="5.00", quantiity=1):
         self.payment = paypalrestsdk.Payment({
             "intent": "sale",
             "payer": {
@@ -81,7 +81,7 @@ class PayPalProcessor:
                 "amount": {
                     "total": price,
                     "currency": currency},
-                "description": "UD10"}]})
+                "description": "Fund"}]})
         if self.payment.create():
             print("Payment created successfully")
         else:

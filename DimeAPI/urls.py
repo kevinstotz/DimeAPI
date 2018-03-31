@@ -27,7 +27,7 @@ from DimeAPI.views.deposit.braintree.views import BraintreeDepositToken, Braintr
 from DimeAPI.views.withdraw.braintree.views import BraintreeWithdrawToken, BraintreeWithdrawPaypalTransaction, \
     BraintreeWithdrawVisaMCTransaction
 from DimeAPI.views.deposit.paypal.views import PaypalCreate, PaypalCapture, PaypalReturn
-from DimeAPI.views.funds.UD10.views import UD10LineChart,  UD10PieChart,  UD10TableListChart,  UD10TableChart
+from DimeAPI.views.funds.UD10.views import FundLineChart, FundPieChart, FundTableListChart, FundTableChart
 from DimeAPI.views.register.views import RegisterUser, RegisterAffiliate, VerifyRegister
 from DimeAPI.views.www.views import NewsLetterSubscribe, IndexPage, CoinNews, ContactUs
 from DimeAPI.views.account.views import LoginUser, ForgotPassword, ResetPassword, LogoutUser, GetUserId
@@ -37,11 +37,11 @@ register_converter(FileNameConverter, 'filenamePattern')
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
-    path(r'api/fund/ud10/linechart/',  UD10LineChart.as_view(), name="ud10LineChart"),
-    path(r'api/fund/ud10/piechart/',  UD10PieChart.as_view(), name="ud10PieChart"),
-    path(r'api/fund/ud10/tablechart/',  UD10TableChart.as_view(), name="ud10TableChart"),
-    path(r'api/fund/ud10/tablelistchart/',  UD10TableListChart.as_view(), name="ud10TableListChart"),
-    path(r'api/fund/ud10/coinnews/', CoinNews.as_view(), name="coinNews"),
+    path(r'api/fund/linechart/<int:pk>/',  FundLineChart.as_view(), name="LineChart"),
+    path(r'api/fund/piechart/<int:pk>/',  FundPieChart.as_view(), name="fundPieChart"),
+    path(r'api/fund/tablechart/<int:pk>/',  FundTableChart.as_view(), name="TableChart"),
+    path(r'api/fund/tablelistchart/<int:pk>/',  FundTableListChart.as_view(), name="TableListChart"),
+    path(r'api/fund/coinnews/<int:pk>/', CoinNews.as_view(), name="coinNews"),
 
     path(r'api/newsletter/', NewsLetterSubscribe.as_view(), name="newsLetterSubscribe"),
     path(r'api/contactus/', ContactUs.as_view(), name="contactus"),

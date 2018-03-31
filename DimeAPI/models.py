@@ -5,9 +5,29 @@ from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from DimeAPI.settings.base import EMAIL_LENGTH, ADDRESS_LENGTH, FIRST_NAME_LENGTH, \
-    LAST_NAME_LENGTH, AUTHORIZATION_CODE_LENGTH, EMAIL_TEMPLATE_DIR, CURRENCY_NAME_LENGTH, \
+    LAST_NAME_LENGTH, AUTHORIZATION_CODE_LENGTH, EMAIL_TEMPLATE_DIR, \
     COIN_SYMBOL_LENGTH, COIN_NAME_LENGTH, COIN_FULL_NAME_LENGTH, PASSWORD_LENGTH, AUTH_USER_MODEL, NONCE_LENGTH
 from .managers import UserManager
+
+
+class Currency(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=COIN_NAME_LENGTH, default="dd", blank=False)
+    symbol = models.CharField(max_length=COIN_SYMBOL_LENGTH, default="dd", blank=False)
+    coin_name = models.CharField(max_length=COIN_NAME_LENGTH, default="dd")
+    full_name = models.CharField(max_length=COIN_FULL_NAME_LENGTH, default="dd")
+    class_name = models.CharField(max_length=50, default="dd", blank=False)
+    coinmarketcap = models.CharField(max_length=100, default="dd", blank=True)
+    active = models.BooleanField(default=False, verbose_name="Active Currency")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.name
+
+    class Meta:
+        db_table = 'dimecoins_currency'
+        managed = False
+        ordering = ('id',)
 
 
 class UserProfile(models.Model):
@@ -52,6 +72,7 @@ class PaymentGateway(models.Model):
 
 
 class PaypalTransactionResourceAmount(models.Model):
+    id = models.AutoField(primary_key=True)
     total = models.FloatField(default=0.0, blank=False)
     currency = models.CharField(max_length=10, default="NA", blank=False)
     objects = models.Manager()
@@ -633,6 +654,7 @@ class FileType(models.Model):
 
 
 class MailServer(models.Model):
+    id = models.AutoField(primary_key=True)
     vendor = models.CharField(max_length=255, blank=False, verbose_name="vendor name", default="No Name")
     username = models.CharField(max_length=EMAIL_LENGTH, blank=False, verbose_name="username", default="No Name")
     password = models.CharField(max_length=PASSWORD_LENGTH, blank=False, verbose_name="password", default="No Name")
@@ -654,6 +676,7 @@ def user_directory_path(instance, filename):
 
 
 class Document(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, blank=False, verbose_name="Filename of document", default="No Name")
     user = models.ForeignKey(UserProfile,
                              on_delete=models.CASCADE,
@@ -879,35 +902,6 @@ class Xchange(models.Model):
         ordering = ('id',)
 
 
-class Currency(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=CURRENCY_NAME_LENGTH, default="")
-    symbol = models.CharField(max_length=COIN_SYMBOL_LENGTH, default="")
-    coinName = models.CharField(max_length=COIN_NAME_LENGTH, default="")
-    fullName = models.CharField(max_length=COIN_FULL_NAME_LENGTH, default="")
-    active = models.BooleanField(default=False, verbose_name="Active Currency")
-    objects = models.Manager()
-
-    def __str__(self):
-        return '%s' % self.name
-
-    class Meta:
-        ordering = ('id',)
-
-
-class XchangeCurrency(models.Model):
-    currencyXChange = models.ForeignKey(Xchange, on_delete=models.SET_DEFAULT, default=1)
-    currency = models.IntegerField(default=0)
-
-    objects = models.Manager()
-
-    def __str__(self):
-        return '%s' % self.currencyXChange
-
-    class Meta:
-        ordering = ('currencyXChange', 'currency')
-
-
 class NewsLetter(models.Model):
     email = models.EmailField(max_length=EMAIL_LENGTH, default="noemail@yogishouse.com", primary_key=True)
     timestamp = models.BigIntegerField(default=0)
@@ -921,12 +915,79 @@ class NewsLetter(models.Model):
         ordering = ('email', )
 
 
-class UD10Period(models.Model):
+class Fund(models.Model):
     id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50, blank=False, unique=True)
+    active = models.BooleanField(default=False)
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class FundPeriod(models.Model):
+    id = models.AutoField(primary_key=True)
+    period = models.CharField(max_length=20, blank=False, default="Month")
+    objects = models.Manager()
+
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class FundRebalanceDate(models.Model):
+    id = models.AutoField(primary_key=True)
+    num_of_coins = models.IntegerField(default=10)
     start_date = models.DateField()
     end_date = models.DateField()
-    num_of_coins = models.IntegerField(default=10)
+    frequency = models.IntegerField(default=1)
+    period = models.ForeignKey(FundPeriod,
+                               on_delete=models.PROTECT,
+                               default=1,
+                               verbose_name="Repeat Period",
+                               related_name="rebalancePeriod")
+    fund = models.ForeignKey(Fund,
+                             on_delete=models.PROTECT,
+                             default=1,
+                             verbose_name="Fund Rebalance Date",
+                             related_name="FundRebalanceDateFund")
+    objects = models.Manager()
 
+    def __str__(self):
+        return '%s' % self.id
+
+    class Meta:
+        ordering = ('id',)
+
+
+class FundCurrency(models.Model):
+    id = models.AutoField(primary_key=True)
+    currency = models.IntegerField(blank=True)
+    fund = models.ForeignKey(Fund,
+                             on_delete=models.PROTECT,
+                             default=1,
+                             verbose_name="Associated Fund",
+                             related_name="associatedFund")
+    rebalance = models.ForeignKey(FundRebalanceDate,
+                                  on_delete=models.PROTECT,
+                                  default=1,
+                                  verbose_name="Rebalance Date of Fund",
+                                  related_name="fundCurrencyRebalanceDate")
+    rebalance_price = models.FloatField(default=0.0)
+    market_cap = models.BigIntegerField(default=0)
+    available_supply = models.BigIntegerField(default=0)
+    percent = models.FloatField(default=0.0)
+    amount = models.FloatField(default=0.0)
+    rebalance_value = models.FloatField(default=0.0)
+    end_price = models.FloatField(default=0.0)
+    end_value = models.FloatField(default=0.0)
+    rank = models.IntegerField(default=0)
+    level = models.FloatField(default=0.0)
     objects = models.Manager()
 
     def __str__(self):
@@ -945,6 +1006,7 @@ class Vendor(models.Model):
     api_key = models.CharField(max_length=100, default="")
     username = models.CharField(max_length=50, default="")
     password = models.CharField(max_length=50, default="")
+    objects = models.Manager()
 
     def __str__(self):
         return '%s' % self.name
@@ -953,49 +1015,32 @@ class Vendor(models.Model):
         ordering = ('id', 'name',)
 
 
-class UD10Fund(models.Model):
+class FundHistory(models.Model):
     id = models.AutoField(primary_key=True)
-    currency = models.ForeignKey(Currency, on_delete=models.SET_DEFAULT, default=1)
-    rebalance_date = models.DateField(default=datetime.date.today)
-    period = models.ForeignKey(UD10Period, on_delete=models.SET_DEFAULT, default=1)
-    rank = models.IntegerField(default=0)
-    level = models.FloatField(default=0.0)
-    rebalance_price = models.FloatField(default=0.0)
-    market_cap = models.BigIntegerField(default=0)
-    available_supply = models.BigIntegerField(default=0)
-    percent_of = models.FloatField(default=0.0)
-    amount = models.FloatField(default=0.0)
-    rebalance_value = models.FloatField(default=0.0)
-    end_price = models.FloatField(default=0.0)
-    end_value = models.FloatField(default=0.0)
-
-    objects = models.Manager()
-
-    def __str__(self):
-        return '%s' % self.id
-
-    class Meta:
-        ordering = ('id',)
-
-
-class UD10History(models.Model):
-    id = models.AutoField(primary_key=True)
-    time = models.BigIntegerField(default=0, verbose_name="Close Date")
-    value = models.FloatField(default=0.0)
-    xchange = models.ForeignKey(Xchange, on_delete=models.SET_DEFAULT, default=1)
+    fund = models.ForeignKey(Fund,
+                             on_delete=models.SET_DEFAULT,
+                             default=1,
+                             verbose_name="History of Fund",
+                             related_name="fundHistoryValues")
+    time = models.DateField(verbose_name="Close Time")
+    value = models.FloatField(default=0.0, verbose_name="Close Value")
+    xchange = models.ForeignKey(Xchange,
+                                on_delete=models.SET_DEFAULT,
+                                default=1,
+                                verbose_name="Xchange Used",
+                                related_name="fundXchange")
     inserted = models.DateTimeField(auto_now_add=True, verbose_name="Time inserted")
-
     objects = models.Manager()
 
     def __str__(self):
         return '%s:' % self.id
 
     class Meta:
-        unique_together = (("time", "xchange"),)
         ordering = ('id',)
 
 
 class UserAgent(models.Model):
+    id = models.AutoField(primary_key=True)
     userAgent = models.CharField(max_length=255, blank=True, null=True, default='Unknown', verbose_name="User Agent")
     codeName = models.CharField(max_length=255, blank=True, null=True, default='Unknown', verbose_name="code Name")
     appName = models.CharField(max_length=255, blank=True, null=True, default='Unknown', verbose_name="app Name")

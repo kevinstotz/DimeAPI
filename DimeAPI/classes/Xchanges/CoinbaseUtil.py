@@ -1,4 +1,4 @@
-from DimeAPI.models import Currency, Period, DimeMutualFund, Vendor
+from DimeAPI.models import Currency, FundPeriod, Fund, Vendor
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from coinbase.wallet.client import Client
 from coinbase.wallet import auth
@@ -42,7 +42,7 @@ class CoinbaseUtil():
 
     def getCurrencyPeriod(self, currency_id, period):
         try:
-            self.currency = DimeMutualFund.objects.get(pk=currency_id, period=period)
+            self.currency = Fund.objects.get(pk=currency_id, period=period)
         except ObjectDoesNotExist as error:
             self.currency = 0
             logging.debug('Currency {0} with period {1} does not exist:{2}'.format(currency_id, period, error))
