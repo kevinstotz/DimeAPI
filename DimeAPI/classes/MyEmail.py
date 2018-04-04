@@ -16,6 +16,8 @@ from DimeAPI.settings.base import \
     EMAIL_ADDRESS_STATUS, \
     PASSWORD_RESET_URL, \
     PASSWORD_RESET_STATUS, \
+    SSL_KEY, \
+    SSL_CERT, \
     DASHBOARD_HOSTNAME_URL, \
     NAME_TYPE, \
     REGISTER_STATUS
@@ -49,7 +51,11 @@ class MyEmail:
     emailUsername = ""
 
     def __init__(self, name):
-        self.mail_server = MailServer.objects.get(pk=2)
+        try:
+            self.mail_server = MailServer.objects.get(pk=1)
+        except ObjectDoesNotExist as error:
+            logger.debug('MailServer {0} does not exist:{1}'.format(3, error))
+
         self.emailPassword = self.mail_server.password
         self.emailUsername = self.mail_server.username
         self.emailHost = self.mail_server.server
@@ -69,8 +75,8 @@ class MyEmail:
         self.bodyText = self.bodyText.replace(search, replace)
 
     def replace_string_in_html_template(self, search, replace):
-        logger.debug('Searched:{0} Replaced:{1}'.format(search, replace))
         self.bodyHtml = self.bodyHtml.replace(search, replace)
+        logger.debug('Searched:{0} Replaced:{1}'.format(search, replace))
 
     def load_text_template(self, template_filename):
 
@@ -132,7 +138,7 @@ class MyEmail:
         self.fromEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
         self.toEmail = email_template.fromAddress + '@' + EMAIL_FROM_DOMAIN
         self.replace_string_in_html_template('EMAIL_VERIFY_TRACK_URL',
-                                        EMAIL_VERIFY_TRACK_URL + "contactus")
+                                             EMAIL_VERIFY_TRACK_URL + "contactus")
         self.replace_string_in_html_template('NAME', contactus.validated_data['name'] + " ")
         self.replace_string_in_html_template('EMAIL', contactus.validated_data['email'])
         self.replace_string_in_html_template('MESSAGE', contactus.validated_data['message'])
@@ -148,10 +154,16 @@ class MyEmail:
             return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
 
         self.replace_string_in_text_template('EMAIL_VERIFY_TRACK_URL',
-                                        EMAIL_VERIFY_TRACK_URL + "contactus")
+                                             EMAIL_VERIFY_TRACK_URL + "contactus")
         self.replace_string_in_text_template('NAME', contactus.validated_data['name'] + " ")
         self.replace_string_in_text_template('EMAIL', contactus.validated_data['email'])
         self.replace_string_in_text_template('MESSAGE', contactus.validated_data['message'])
+
+        self.mail_server = MailServer.objects.get(pk=3)
+        self.emailPassword = self.mail_server.password
+        self.emailUsername = self.mail_server.username
+        self.emailHost = self.mail_server.server
+        self.emailPort = self.mail_server.port
 
         if self.send() == 1:
             notification.status = NotificationStatus.objects.get(pk=NOTIFICATION_STATUS['SENT'])
@@ -166,7 +178,6 @@ class MyEmail:
         notification.save()
         result = 'Email sent!'
         return ReturnResponse.Response(0, __name__, 'success', result).return_json()
-
 
     def send_verify_email(self, register_user):
 
@@ -199,9 +210,9 @@ class MyEmail:
         self.toEmail = register_user.email
 
         self.replace_string_in_html_template('EMAIL_VERIFY_TRACK_URL',
-                                        EMAIL_VERIFY_TRACK_URL + register_user.authorizationCode)
+                                             EMAIL_VERIFY_TRACK_URL + register_user.authorizationCode)
         self.replace_string_in_html_template('EMAIL_VERIFY_ACCOUNT_URL',
-                                        EMAIL_VERIFY_ACCOUNT_URL + register_user.authorizationCode)
+                                             EMAIL_VERIFY_ACCOUNT_URL + register_user.authorizationCode)
         self.replace_string_in_html_template('FIRST_NAME', register_user.firstName + " ")
         self.replace_string_in_html_template('LAST_NAME', register_user.lastName)
 
@@ -216,9 +227,9 @@ class MyEmail:
             return ReturnResponse.Response(1, __name__, 'failed', result).return_json()
 
         self.replace_string_in_text_template('EMAIL_VERIFY_TRACK_URL',
-                                        EMAIL_VERIFY_TRACK_URL + register_user.authorizationCode)
+                                             EMAIL_VERIFY_TRACK_URL + register_user.authorizationCode)
         self.replace_string_in_text_template('EMAIL_VERIFY_ACCOUNT_URL',
-                                        EMAIL_VERIFY_ACCOUNT_URL + register_user.authorizationCode)
+                                             EMAIL_VERIFY_ACCOUNT_URL + register_user.authorizationCode)
         self.replace_string_in_text_template('FIRST_NAME', register_user.firstName + " ")
         self.replace_string_in_text_template('LAST_NAME', register_user.lastName)
 
@@ -237,7 +248,6 @@ class MyEmail:
         notification.save()
         result = 'Verification email sent to:{}'.format(self.toEmail)
         return ReturnResponse.Response(0, __name__, 'success', result).return_json()
-
 
     def send_welcome_email(self, new_user, new_password):
 
@@ -363,7 +373,6 @@ class MyEmail:
         notification.save()
         return ReturnResponse.Response(0, __name__, 'success', result).return_json()
 
-
     def send_forgot_password_email(self, user):
 
         try:
@@ -454,7 +463,6 @@ class MyEmail:
         notification.save()
         return 'Password reset instruction sent'
 
-
     def send_reset_password_email(self, request):
 
         try:
@@ -478,7 +486,7 @@ class MyEmail:
             logger.debug(result)
             return 'This Request has expired'
 
-        if  (password_reset.inserted + timedelta(minutes=120)) <= datetime.now():
+        if (password_reset.inserted + timedelta(minutes=120)) <= datetime.now():
             password_reset.delete()
             result = 'This Request has expired!  Click forgot password again.'
             logger.debug(result)
@@ -512,7 +520,7 @@ class MyEmail:
             logger.critical(error)
             return result
 
-        notification = Notification(toUser = password_reset.user.pk,
+        notification = Notification(toUser=password_reset.user.pk,
                                     message=email_template.pk,
                                     type=NotificationType.objects.get(pk=NOTIFICATION_TYPE['EMAIL']))
 
@@ -585,7 +593,6 @@ class MyEmail:
         connection.port = self.emailPort
         connection.username = self.emailUsername
         connection.password = self.emailPassword
-        connection.use_ssl = False
         email1 = EmailMultiAlternatives(
             self.subject,
             self.bodyText,
@@ -594,7 +601,10 @@ class MyEmail:
             connection=connection,
         )
         email1.attach_alternative(self.bodyHtml, "text/html")
-        res = email1.send()
+        try:
+            res = email1.send(fail_silently=False)
+        except Exception as error:
+            print(error)
         print(res)
         connection.close()
         return res
