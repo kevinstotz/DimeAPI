@@ -10,7 +10,7 @@ DATABASES = {
         'HOST': 'dev.cdt994n5tnkz.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
         'OPTIONS': {
-            'read_default_file': join('/', 'etc/', 'mysql/', 'conf.d/', 'mysql.dimeApi.cnf'),
+            'read_default_file': join('/', 'etc/', 'mysql/', 'conf.d/', 'mysql.YogisAPI.cnf'),
         },
     },
     'coins': {
@@ -19,7 +19,7 @@ DATABASES = {
         'HOST': 'dev.cdt994n5tnkz.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
         'OPTIONS': {
-            'read_default_file': join('/', 'etc/', 'mysql/', 'conf.d/', 'mysql.dimeCoins.cnf'),
+            'read_default_file': join('/', 'etc/', 'mysql/', 'conf.d/', 'mysql.YogisCoin.cnf'),
         },
     },
 }

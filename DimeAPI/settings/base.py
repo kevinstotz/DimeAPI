@@ -70,16 +70,16 @@ if 'prod' in environ['DJANGO_SERVER_TYPE'].lower():
     DJANGO_LOG_LEVEL = DEBUG
 
     WEBSITE_IP_ADDRESS = "127.0.0.1"
-    WEBSITE_HOSTNAME = 'www-dime.yogishouse.com'
+    WEBSITE_HOSTNAME = 'www.yogishouse.com'
     WEBSITE_PORT = 10004
 
     DASHBOARD_IP_ADDRESS = "127.0.0.1"
-    DASHBOARD_HOSTNAME = 'dashboard-dime.yogishouse.com'
+    DASHBOARD_HOSTNAME = 'dashboard.yogishouse.com'
     DASHBOARD_PORT = 10005
 
     ENGINE_IP_ADDRESS = "127.0.0.1"
     ENGINE_DOMAIN = 'yogishouse.com'
-    ENGINE_HOSTNAME = 'api-dime' + "." + ENGINE_DOMAIN
+    ENGINE_HOSTNAME = 'api' + "." + ENGINE_DOMAIN
     ENGINE_PORT = 10006
 
     WEBSITE_HOSTNAME_AND_PORT = WEBSITE_HOSTNAME + ":" + str(WEBSITE_PORT)
@@ -116,10 +116,10 @@ INSTALLED_APPS = [
     'DimeAPI',
     'corsheaders',
     'rest_framework',
-    'django.contrib.admin',
     'django_user_agents',
     'two_factor',
     'oauth2_provider',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
