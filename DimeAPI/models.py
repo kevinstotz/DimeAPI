@@ -25,7 +25,7 @@ class Currency(models.Model):
         return '%s' % self.name
 
     class Meta:
-        db_table = 'dimecoins_currency'
+        db_table = 'DimeCoins_currency'
         managed = False
         ordering = ('id',)
 

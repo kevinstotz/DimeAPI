@@ -20,7 +20,8 @@ class UserUtils:
             self.new_username = username + '_' + str(randint(100, 999))
             try:
                 self.num_records = CustomUser.objects.get(username=username).count()
-            except ObjectDoesNotExist:
+            except ObjectDoesNotExist as error:
+                logger.error("User does not Exist:{0}: {1}".format(username, error))
                 self.num_records = 0
                 break
 
@@ -32,7 +33,7 @@ def get_user_from_email(email):
         customUser = CustomUser.objects.get(email=email)
         return customUser
     except ObjectDoesNotExist as error:
-        print(error)
+        logger.error("User does not Exist:{0}: {1}".format(email, error))
     return None
 
 

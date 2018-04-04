@@ -397,9 +397,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #  EMAIL_HOST_PASSWORD = '4eaf0f51577f20'
 EMAIL_TIMEOUT = 10
 EMAIL_LENGTH = 100
-#  EMAIL_USE_TLS = False
+EMAIL_USE_TLS = True
 #  EMAIL_USE_SSL = True
-
+DEFAULT_CONTENT_TYPE = 'text/html'
+SSL_CERT = join(PROJECT_DIR, 'assets', 'ssl', 'yogishouse.com.cert')
+SSL_KEY = join(PROJECT_DIR, 'assets', 'ssl', 'yogishouse.com.key')
 EMAIL_TEMPLATE_DIR = join(PROJECT_NAME, "EmailTemplates")
 EMAIL_FROM_DOMAIN = 'yogishouse.com'
 NONCE_LENGTH=50

@@ -39,17 +39,12 @@ class RegisterUser(CreateModelMixin, viewsets.GenericViewSet):
             serializer.is_valid(raise_exception=True)
             register_user = serializer.save(ipAddress=get_client_ip(request))
         except serializers.ValidationError as error:
-            result = '{0}:'.format(error)
-            logger.error(result)
-            logger.error(serializer.errors)
-            return Response(ReturnResponse.Response(1, __name__, 'Email Address Already Exists', result).return_json(),
+            logger.error("Failed Serializing User:{0}: error:{1}".format(request.data, serializer.errors))
+            return Response(ReturnResponse.Response(1, __name__, 'Email Address Already Exists', error).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)
         except Exception as error:
-            result = 'Failed parsing JSon:{0}'.format(request)
-            logger.error(result)
-            logger.error(error)
-            logger.error(register_user.errors)
-            return Response(ReturnResponse.Response(1, __name__, 'Failed parsing Json', result).return_json(),
+            logger.error('Failed parsing JSon:{0} Error:{1}'.format(request, error))
+            return Response(ReturnResponse.Response(1, __name__, 'Failed parsing Json', error).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)
 
         my_email = MyEmail.MyEmail('Verify Email')
@@ -77,15 +72,12 @@ class RegisterAffiliate(CreateModelMixin, viewsets.GenericViewSet):
             register_affiliate = serializer.save()
         except serializers.ValidationError as error:
             result = '{0}:'.format(error)
-            logger.error(result)
-            logger.error(serializer.errors)
+            logger.error("Serializer Error: {0}: error:{1}".format(serializer.errors, result))
             return Response(ReturnResponse.Response(1, __name__, 'Email Address Already Exists', result).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)
         except Exception as error:
             result = 'Failed parsing JSon:{0}'.format(request)
-            logger.error(result)
-            logger.error(error)
-            logger.error(register_affiliate.errors)
+            logger.error("{0} error{1}: Serialize Error:{2}".format(result, error, register_affiliate.errors))
             return Response(ReturnResponse.Response(1, __name__, 'Failed parsing Json', result).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)
 
