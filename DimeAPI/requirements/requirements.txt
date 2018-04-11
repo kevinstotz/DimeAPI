@@ -63,7 +63,7 @@ oauthlib==2.0.6
 olefile==0.44
 django-otp==0.4.2
 pathtools==0.1.2
-paypalrestsdk==1.31.1
+paypalrestsdk==1.13.1
 Pillow==4.3.0
 protobuf==3.5.0.post1
 py-ecc==1.4.2
