@@ -341,6 +341,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+        'PAGE_SIZE': 20
 }
 
 # 'DEFAULT_FILTER_BACKENDS':  ('rest_framework.filters.DjangoFilterBackend',),
@@ -404,7 +406,7 @@ SSL_CERT = join(PROJECT_DIR, 'assets', 'ssl', 'yogishouse.com.cert')
 SSL_KEY = join(PROJECT_DIR, 'assets', 'ssl', 'yogishouse.com.key')
 EMAIL_TEMPLATE_DIR = join(PROJECT_NAME, "EmailTemplates")
 EMAIL_FROM_DOMAIN = 'yogishouse.com'
-NONCE_LENGTH=50
+NONCE_LENGTH = 50
 AUTHORIZATION_CODE_VALID_TIME_IN_SECONDS = 60 * 60 * 24  # 1 day
 #  User Status
 USER_STATUS = {

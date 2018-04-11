@@ -408,13 +408,6 @@ class FundHistorySerializer(ModelSerializer):
         return 1
 
 
-class CurrencySerializer(ModelSerializer):
-
-    class Meta:
-        model = Fund
-        fields = ('id', 'name', 'symbol', 'coinName', 'fullName',)
-
-
 class FundRebalanceDateValueSerializer(ModelSerializer):
     name = serializers.DateField(source='start_date')
     value = serializers.SerializerMethodField(source='start_date', method_name='to_value')

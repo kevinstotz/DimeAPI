@@ -95,7 +95,7 @@ class ContactUs(generics.CreateAPIView):
 
         contact_us.create(contact_us.validated_data)
         my_email = MyEmail.MyEmail(name=contact_us.validated_data['name'])
-        my_email.send_contact_us(contact_us)
+        result = my_email.send_contact_us(contact_us)
         result = "Email Sent!"
         logger.error(result)
         return Response(ReturnResponse.Response(0, __name__, result, 0).return_json(),
