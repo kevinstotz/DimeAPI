@@ -35,16 +35,15 @@ class PaypalCapture(views.APIView):
         try:
             serializer = PaypalTransactionSerializer(data=request.data)
         except Exception as error:
-            logger.error("Paypal payment captured error: " + error)
+            logger.error("Paypal payment captured error: {0}".format(error))
             return
         try:
             serializer.is_valid(raise_exception=True)
             serializer.save()
         except Exception as error:
-            logger.error("Paypal payment captured error: " + error)
+            logger.error("Paypal payment captured error: {0}".format(error))
             return Response(ReturnResponse.Response(1, __name__, 'failed', error).return_json(),
                         status=status.HTTP_200_OK)
-
         pp.capture(serializer)
 
         return Response(ReturnResponse.Response(0, __name__, 'success', "0").return_json(),

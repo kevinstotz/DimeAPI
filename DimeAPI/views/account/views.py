@@ -11,7 +11,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 
+
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
 
 
 class LoginUser(generics.GenericAPIView):
@@ -92,8 +94,8 @@ class GetUserId(generics.GenericAPIView):
     renderer_classes = (JSONRenderer,)
     queryset = CustomUser.objects.all()
 
+
     def post(self, request):
-        print(request.data['Username'])
         if not request.data['Username']:
             return Response(ReturnResponse.Response(1, __name__, 'error', 0).return_json(),
                             status=status.HTTP_400_BAD_REQUEST)

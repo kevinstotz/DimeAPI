@@ -1,10 +1,15 @@
-from DimeAPI.models import Fund, FundHistory, FundRebalanceDate, FundCurrency
+from DimeAPI.models import Fund, FundHistory, FundRebalanceDate, FundCurrency, FundPeriod
 from DimeAPI.serializer import FundTableChartSerializer, FundLineChartSerializer, FundPieChartSerializer, \
-    FundRebalanceDateValueSerializer, FundTableListChartSerializer
+    FundRebalanceDateValueSerializer, FundTableListChartSerializer, FundPeriodSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import JSONParser
+import logging
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
 
 
 class FundLineChart(generics.ListAPIView):
@@ -21,7 +26,7 @@ class FundLineChart(generics.ListAPIView):
             fund = Fund.objects.get(pk=self.kwargs['pk'])
             return FundHistory.objects.filter(fund=fund).order_by('time')
         except Exception as error:
-            print(error)
+            logger.error("{0}".format(error))
             return
 
 
@@ -37,9 +42,8 @@ class FundRebalanceDateValue(generics.ListAPIView):
             fund = Fund.objects.get(pk=self.kwargs['pk'])
             return FundRebalanceDate.objects.filter(fund=fund).order_by('+start_date')
         except Exception as error:
-            print(error)
+            logging.error('{0}'.format(error))
             return
-
 
 
 class FundPieChart(generics.ListAPIView):
@@ -53,9 +57,9 @@ class FundPieChart(generics.ListAPIView):
         try:
             fund = Fund.objects.get(pk=self.kwargs['pk'])
             rebalance_date = FundRebalanceDate.objects.filter(fund=fund).order_by('start_date')[0:1].get()
-            return FundCurrency.objects.all().filter(fund=fund).order_by('-rebalance__start_date')[:rebalance_date.num_of_coins]
+            return FundCurrency.objects.filter(fund=fund).order_by('-rebalance__start_date')[:rebalance_date.num_of_coins]
         except Exception as error:
-            print(error)
+            logging.error('{0}'.format(error))
             return
 
 
@@ -70,9 +74,9 @@ class FundTableChart(generics.ListAPIView):
         try:
             fund = Fund.objects.get(pk=self.kwargs['pk'])
             rebalance_date = FundRebalanceDate.objects.filter(fund=fund).order_by('start_date')[0:1].get()
-            return FundCurrency.objects.all().filter(fund=fund).order_by('-rebalance__start_date')[:rebalance_date.num_of_coins]
+            return FundCurrency.objects.filter(fund=fund).order_by('-rebalance__start_date')[:rebalance_date.num_of_coins]
         except Exception as error:
-            print(error)
+            logging.error('{0}'.format(error))
             return
 
 
@@ -86,7 +90,15 @@ class FundTableListChart(generics.ListAPIView):
     def get_queryset(self):
         try:
             fund = Fund.objects.get(pk=self.kwargs['pk'])
-            return FundCurrency.objects.all().filter(fund=fund).order_by('-rebalance__start_date')[:10]
+            return FundCurrency.objects.filter(fund=fund).order_by('-rebalance__start_date')[:10]
         except Exception as error:
-            print(error)
+            logging.error('{0}'.format(error))
             return
+
+
+class FundRebalancePeriod(generics.ListAPIView):
+    model = FundPeriod
+    serializer_class = FundPeriodSerializer
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+    queryset = FundPeriod.objects.all()
