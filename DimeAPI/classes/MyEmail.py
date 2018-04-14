@@ -55,6 +55,9 @@ class MyEmail:
             self.mail_server = MailServer.objects.get(pk=1)
         except ObjectDoesNotExist as error:
             logger.debug('MailServer {0} does not exist:{1}'.format(3, error))
+        except Exception as error:
+            print(error)
+            return (error)
 
         self.emailPassword = self.mail_server.password
         self.emailUsername = self.mail_server.username
