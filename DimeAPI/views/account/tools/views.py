@@ -7,6 +7,7 @@ import logging
 
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
 
 
 class CountryView(generics.ListAPIView):

@@ -39,7 +39,9 @@ from DimeAPI.classes import ReturnResponse, UserUtil
 from os.path import join
 import logging
 
+
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
 
 
 class MyEmail:
@@ -56,8 +58,8 @@ class MyEmail:
         except ObjectDoesNotExist as error:
             logger.debug('MailServer {0} does not exist:{1}'.format(3, error))
         except Exception as error:
-            print(error)
-            return (error)
+            logger.error("{0}".format(error))
+            return
 
         self.emailPassword = self.mail_server.password
         self.emailUsername = self.mail_server.username
@@ -384,7 +386,7 @@ class MyEmail:
             result = 'Loaded password reset for user Id:{0}'.format(user.pk)
             logger.debug(result)
         except ObjectDoesNotExist as error:
-            pass
+            logger.error("{0}".format(error))
 
         password_reset = PasswordReset(user=user,
                                        authorization_code=UserUtil.get_authorization_code(),
@@ -607,7 +609,6 @@ class MyEmail:
         try:
             res = email1.send(fail_silently=False)
         except Exception as error:
-            print(error)
-        print(res)
+            logger.error("{0}".format(error))
         connection.close()
         return res

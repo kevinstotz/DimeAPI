@@ -21,7 +21,9 @@ from rest_framework import viewsets
 import logging
 from datetime import datetime
 
+
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
 
 
 class RegisterUser(CreateModelMixin, viewsets.GenericViewSet):
@@ -89,7 +91,7 @@ class RegisterAffiliate(CreateModelMixin, viewsets.GenericViewSet):
                         status=status.HTTP_201_CREATED)
 
     def post(self, request):
-        print(request.data)
+        logger.info(request.data)
 
 
 class VerifyRegister(generics.ListAPIView):
@@ -171,10 +173,8 @@ class VerifyRegister(generics.ListAPIView):
             pw = UserUtil.generate_password()
             new_user.set_password(pw)
             new_user.save()
-        except Exception as e:
-            print(type(e))
-            print(e)
-            print(e.args)
+        except Exception as error:
+            logger.error("{0}".format(error))
 
         email = EmailAddress(email=verify_register.email,
                              user_profile=user_profile,
@@ -203,7 +203,6 @@ class VerifyRegister(generics.ListAPIView):
         except Exception as error:
             logger.error(error)
             address = Address(user_profile=user_profile)
-
 
         address.save()
         email.save()

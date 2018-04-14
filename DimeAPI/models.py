@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 import uuid
-import datetime
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -144,18 +143,18 @@ class BraintreePaypalTransactionDetails(models.Model):
 class BraintreePaypalTransaction(models.Model):
     id = models.AutoField(primary_key=True)
     user_profile = models.ForeignKey(UserProfile,
-                                 on_delete=models.PROTECT,
-                                 verbose_name='Userprofile of Paypal Transaction',
-                                 default=1,
-                                 related_name='userProfilePaypalTransaction')
+                                     on_delete=models.PROTECT,
+                                     verbose_name='Userprofile of Paypal Transaction',
+                                     default=1,
+                                     related_name='userProfilePaypalTransaction')
     nonce = models.CharField(max_length=NONCE_LENGTH, default="NA", blank=False)
     amount = models.FloatField(default=0.0, blank=True)
     type = models.CharField(max_length=40, default="NA", blank=False)
     details = models.ForeignKey(BraintreePaypalTransactionDetails,
-                                 on_delete=models.PROTECT,
-                                 verbose_name='Braintree Paypal Transaction Details',
-                                 default=1,
-                                 related_name='braintreePaypalTransactionDetails')
+                                on_delete=models.PROTECT,
+                                verbose_name='Braintree Paypal Transaction Details',
+                                default=1,
+                                related_name='braintreePaypalTransactionDetails')
     objects = models.Manager()
 
     def __str__(self):
@@ -163,7 +162,6 @@ class BraintreePaypalTransaction(models.Model):
 
     class Meta:
         ordering = ('id',)
-
 
 
 class BraintreeVisaMCTransactionDetails(models.Model):
@@ -183,18 +181,18 @@ class BraintreeVisaMCTransactionDetails(models.Model):
 class BraintreeVisaMCTransaction(models.Model):
     id = models.AutoField(primary_key=True)
     user_profile = models.ForeignKey(UserProfile,
-                                 on_delete=models.PROTECT,
-                                 verbose_name='Userprofile of VisaMC Transaction',
-                                 default=1,
-                                 related_name='userProfileVisaMcTransaction')
+                                     on_delete=models.PROTECT,
+                                     verbose_name='Userprofile of VisaMC Transaction',
+                                     default=1,
+                                     related_name='userProfileVisaMcTransaction')
     nonce = models.CharField(max_length=NONCE_LENGTH, default="NA", blank=False)
     amount = models.FloatField(default=0.0, blank=True)
     type = models.CharField(max_length=30, default="NA", blank=False)
     details = models.ForeignKey(BraintreeVisaMCTransactionDetails,
-                                 on_delete=models.PROTECT,
-                                 verbose_name='Braintree VisaMC Transaction Details',
-                                 default=1,
-                                 related_name='braintreeVisaMCTransactionDetails')
+                                on_delete=models.PROTECT,
+                                verbose_name='Braintree VisaMC Transaction Details',
+                                default=1,
+                                related_name='braintreeVisaMCTransactionDetails')
     objects = models.Manager()
 
     def __str__(self):
@@ -219,10 +217,10 @@ class HouseFund(models.Model):
 class HouseFee(models.Model):
     id = models.AutoField(primary_key=True)
     fund = models.ForeignKey(HouseFund,
-                                 on_delete=models.PROTECT,
-                                 verbose_name='House Fund',
-                                 default=1,
-                                 related_name='houseFund')
+                             on_delete=models.PROTECT,
+                             verbose_name='House Fund',
+                             default=1,
+                             related_name='houseFund')
     yearly_fee = models.FloatField(default=0.0)
     yearly_fee_start_date = models.DateTimeField(verbose_name="Date when Yearly Fee Started")
     performance_fee = models.FloatField(default=0.0)
@@ -774,7 +772,7 @@ class PasswordReset(models.Model):
     objects = models.Manager()
 
     def __str__(self):
-        return '%s' % self.user.email
+        return '%s' % self.user
 
     class Meta:
         ordering = ('id',)

@@ -12,6 +12,7 @@ import logging
 
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
 
 
 class NewsLetterSubscribe(generics.GenericAPIView):
@@ -69,7 +70,7 @@ class CoinNews(generics.ListAPIView):
             try:
                 currency = Currency.objects.using('coins').get(pk=record.currency)
             except Exception as error:
-                print(error)
+                logger.error("{0}".format(error))
                 return Response(ReturnResponse.Response(3, __name__, "No currency", error).return_json(),
                                 status=status.HTTP_200_OK)
             news.append(newsfeed.get_news_feed(currency.symbol))

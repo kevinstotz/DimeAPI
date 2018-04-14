@@ -1,23 +1,25 @@
 import time
+import logging
 from datetime import datetime
 import calendar
 from rest_framework.serializers import ModelSerializer
-
 from rest_framework import serializers
-
 from DimeAPI.models import Register, RegisterStatus, CustomUser, Fund, NewsLetter, UserAgent, State, \
      FundHistory, Notification, ContactUsForm, FundRebalanceDate, Xchange, Affiliate, Name, NameType, City, \
      Document, DocumentType, DocumentStatus, FileType, DepositTransaction, PaypalTransactionResourceAmount, \
      PaypalTransaction, BraintreePaypalTransactionDetails, BraintreePaypalTransaction, BraintreeVisaMCTransactionDetails, \
      UserProfile, Address, ZipCode, PaypalTransactionResource, BraintreeVisaMCTransaction, PhoneNumberType, Country, \
      PhoneNumber, EmailAddressType, EmailAddress, DepositTransactionType, DepositTransactionStatus, WithdrawTransaction, \
-     WithdrawTransactionStatus, WithdrawTransactionType, FundCurrency, Currency
-
+     WithdrawTransactionStatus, WithdrawTransactionType, FundCurrency, Currency, FundPeriod
 from DimeAPI.settings.base import REGISTER_STATUS, AUTHORIZATION_CODE_LENGTH, XCHANGE, ENGINE_HOSTNAME_NO_PORT, MEDIA_URL, \
     DEPOSIT_TYPE, PAYMENT_GATEWAYS, WITHDRAW_TYPE, DASHBOARD_HOSTNAME_URL
 from DimeAPI.classes.UserUtil import get_authorization_code
 from DimeAPI.classes.EmailUtil import EmailUtil
 from django.core.exceptions import ObjectDoesNotExist
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
 
 
 class DepositTransactionTypeSerializer(ModelSerializer):
@@ -53,7 +55,7 @@ class DepositTransactionSerializer(ModelSerializer):
         try:
             instance = DepositTransactionStatus.objects.get(pk=obj.deposit_status.pk)
         except ObjectDoesNotExist as error:
-            print(error)
+            logger.error("{0}".format(error))
             return 0
         return instance.status
 
@@ -61,7 +63,7 @@ class DepositTransactionSerializer(ModelSerializer):
         try:
             instance = DepositTransactionType.objects.get(pk=obj.deposit_type.pk)
         except ObjectDoesNotExist as error:
-            print(error)
+            logger.error("{0}".format(error))
             return 0
         return instance.type
 
@@ -71,7 +73,7 @@ class DepositTransactionSerializer(ModelSerializer):
                 try:
                     trans = BraintreePaypalTransaction.objects.get(pk=obj.deposit_id, user_profile=self.context['request'].user.user_profile)
                 except ObjectDoesNotExist as error:
-                    print(error)
+                    logger.error("{0}".format(error))
                     return 0
                 return trans.amount
 
@@ -80,7 +82,7 @@ class DepositTransactionSerializer(ModelSerializer):
                 try:
                     trans = BraintreeVisaMCTransaction.objects.get(pk=obj.deposit_id, user_profile=self.context['request'].user.user_profile)
                 except ObjectDoesNotExist as error:
-                    print(error)
+                    logger.error("{0}".format(error))
                     return 0
                 return trans.amount
         return 0
@@ -108,7 +110,7 @@ class WithdrawTransactionSerializer(ModelSerializer):
     status = serializers.SerializerMethodField(source='withdraw_status')
 
     class Meta:
-        model =  WithdrawTransaction
+        model = WithdrawTransaction
         read_only_fields = ('id',)
         fields = ('id', 'inserted', 'status', 'deposit_withdraw', 'amount', 'transactionMethod',)
 
@@ -119,7 +121,7 @@ class WithdrawTransactionSerializer(ModelSerializer):
         try:
             instance = WithdrawTransactionStatus.objects.get(pk=obj.withdraw_status.pk)
         except ObjectDoesNotExist as error:
-            print(error)
+            logger.error("{0}".format(error))
             return 0
         return instance.status
 
@@ -127,7 +129,7 @@ class WithdrawTransactionSerializer(ModelSerializer):
         try:
             instance = WithdrawTransactionType.objects.get(pk=obj.withdraw_type.pk)
         except ObjectDoesNotExist as error:
-            print(error)
+            logger.error("{0}".format(error))
             return 0
         return instance.type
 
@@ -138,7 +140,7 @@ class WithdrawTransactionSerializer(ModelSerializer):
                     trans = BraintreePaypalTransaction.objects.get(pk=obj.withdraw_id, user_profile=self.context[
                         'request'].user.user_profile)
                 except ObjectDoesNotExist as error:
-                    print(error)
+                    logger.error("{0}".format(error))
                     return 0
                 return trans.amount
 
@@ -148,7 +150,7 @@ class WithdrawTransactionSerializer(ModelSerializer):
                     trans = BraintreeVisaMCTransaction.objects.get(pk=obj.withdraw_id, user_profile=self.context[
                         'request'].user.user_profile)
                 except ObjectDoesNotExist as error:
-                    print(error)
+                    logger.error("{0}".format(error))
                     return 0
                 return trans.amount
         return 0
@@ -380,9 +382,8 @@ class UserProfileSerializer(ModelSerializer):
         fields = ('names', 'emailAddresses', 'addresses', 'phoneNumbers', 'customUser', 'avatar', 'about', 'birth_date')
 
     def get_avatar(self, obj):
-        print(obj.avatar)
         return DASHBOARD_HOSTNAME_URL + "/assets/images/profiles/" + str(self.context[
-                        'request'].user.user_profile.pk) + "/" +  str(obj.avatar)
+                        'request'].user.user_profile.pk) + "/" + str(obj.avatar)
 
 
 class FundHistorySerializer(ModelSerializer):
@@ -404,8 +405,16 @@ class FundHistorySerializer(ModelSerializer):
         try:
             FundRebalanceDate.objects.get(start_date=datetime.utcfromtimestamp(obj.time).strftime('%Y-%m-%d'))
         except ObjectDoesNotExist as error:
+            logger.error("{0}".format(error))
             return 0
         return 1
+
+
+class FundPeriodSerializer(ModelSerializer):
+
+    class Meta:
+        model = FundPeriod
+        fields = ('id', 'period',)
 
 
 class FundRebalanceDateValueSerializer(ModelSerializer):
@@ -422,8 +431,7 @@ class FundRebalanceDateValueSerializer(ModelSerializer):
             xchange = Xchange.objects.get(pk=XCHANGE['COIN_MARKET_CAP'])
             fundHistory = FundHistory.objects.get(time=int(calendar.timegm(obj.start_date.timetuple())), xchange=xchange)
         except Exception as error:
-            print(error)
-            print("could not get entry in history for {0}".format(int(calendar.timegm(obj.start_date.timetuple()))))
+            logger.error("Could not get entry in history for {0}: {1}".format(int(calendar.timegm(obj.start_date.timetuple())), error))
             return 0
         return '{:.2f}'.format(fundHistory.value)
 
@@ -440,10 +448,10 @@ class FundPieChartSerializer(ModelSerializer):
         try:
             currency = Currency.objects.using('coins').get(id=obj.currency)
         except ObjectDoesNotExist as error:
-            print(error)
+            logger.error("{0}".format(error))
             return
         except Exception as error:
-            print(error)
+            logger.error("{0}".format(error))
             return
         return currency.symbol
 
@@ -464,6 +472,7 @@ class FundLineChartSerializer(ModelSerializer):
             FundRebalanceDate.objects.get(start_date=obj.time, fund=obj.fund)
             return 1
         except ObjectDoesNotExist as error:
+            logger.error("{0}".format(error))
             return 0
         return 0
 
@@ -480,10 +489,10 @@ class FundTableChartSerializer(ModelSerializer):
         try:
             currency = Currency.objects.using('coins').get(id=obj.currency)
         except ObjectDoesNotExist as error:
-            print(error)
+            logger.error("{0}".format(error))
             return
         except Exception as error:
-            print(error)
+            logger.error("{0}".format(error))
             return
         return currency.symbol
 
@@ -500,10 +509,10 @@ class FundTableListChartSerializer(ModelSerializer):
         try:
             currency = Currency.objects.using('coins').get(id=obj.currency)
         except ObjectDoesNotExist as error:
-            print(error)
+            logger.error("{0}".format(error))
             return
         except Exception as error:
-            print(error)
+            logger.error("{0}".format(error))
             return
         return currency.symbol
 
