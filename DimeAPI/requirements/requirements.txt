@@ -93,5 +93,5 @@ urllib3==1.22
 user-agents==1.1.0
 watchdog==0.8.3
 web3==4.0.0b6
-Werkzeug==0.13
+Werkzeug==0.15.3
 tzlocal==1.5.1
