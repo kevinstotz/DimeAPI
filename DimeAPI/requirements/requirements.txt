@@ -25,7 +25,7 @@ django-sslserver==0.20
 django-two-factor-auth==1.7.0
 django-unixdatetimefield==0.1.6
 django-user-agents==0.3.2
-djangorestframework==3.7.7
+djangorestframework==3.11.2
 djangorestframework-jsonapi==2.3.1
 djangorestframework-jwt==1.11.0
 djangorestframework-oauth==1.1.0
